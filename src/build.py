@@ -125,6 +125,9 @@ def main():
         '  Referrer-Policy: strict-origin-when-cross-origin',
         '  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()',
         '  Strict-Transport-Security: max-age=31536000; includeSubDomains',
+        # Cloudflare Pages 가 기본으로 붙이는 전체 허용 CORS 를 뗀다.
+        # 이 게임은 자기 페이지 안에서만 돌고, 밖에서 읽어갈 데이터가 없다.
+        '  ! Access-Control-Allow-Origin',
         '',
     ])
     io.open(HEADERS_OUT, 'w', encoding='utf-8', newline=chr(10)).write(headers)
