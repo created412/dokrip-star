@@ -2,3 +2,5 @@ src/check.js
 .dorms-check/
 __pycache__/
 *.pyc
+dist/
+.wrangler/

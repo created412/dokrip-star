@@ -1,0 +1,1220 @@
+/* ============================================================================
+   독립군의 별 — 시작 화면 그림을 기준으로 한 화면 언어
+
+   색은 그림에서 뽑았다. 차가운 청색은 세계와 상태, 금색은 내가 건드릴 수 있는
+   것, 붉은색은 잃은 것. 그림에서 채도 높은 색이 태극기 하나뿐인 것과 같다.
+   시그니처는 그림 속 팔각 별 하나. 구분선과 현재 단계에만 쓴다.
+   ========================================================================= */
+
+:root{
+  --night-0:#050A13;
+  --night-1:#0A1322;
+  --night-2:#16243A;
+
+  --ground:#070D18;
+  --ground-2:#0C1424;
+  --panel:#111C2E;
+  --panel-2:#18263B;
+
+  --line:#1E2E45;
+  --line-2:#31486A;
+  --rule:rgba(227,180,87,.34);
+
+  --text:#E6ECF5;
+  --muted:#93A6BD;
+  --dim:#5E7288;
+
+  --star:#E3B457;
+  --star-2:#FBE9BC;
+  --star-dim:rgba(227,180,87,.16);
+
+  --red:#C8102E;
+  --red-2:#E4677A;
+  --blue:#5E8FBF;
+  --jade:#79A894;
+  --warm:#C9A272;
+
+  --mist-c:143,166,190;
+  --mist-a:.55;
+}
+
+/* ============ 배경 — 안개가 살아 있다 ============ */
+
+body{background:var(--ground)}
+
+.fog{
+  position:fixed;z-index:1;pointer-events:none;
+  left:-40%;width:180%;
+  background:radial-gradient(58% 100% at 50% 62%,
+              rgba(var(--mist-c),calc(var(--mist-a) * .17)),transparent 76%);
+  filter:blur(3px);
+  transition:background 1.2s ease;
+}
+.fog.a{bottom:4vh;height:44vh;animation:drift 120s linear infinite}
+.fog.b{bottom:20vh;height:38vh;opacity:.72;animation:drift 186s linear infinite reverse}
+.fog.c{bottom:34vh;height:30vh;opacity:.45;animation:drift 250s linear infinite}
+@keyframes drift{from{transform:translateX(-9%)}to{transform:translateX(9%)}}
+
+#grain{opacity:.05}
+
+/* ============ 판 — 모든 내용은 밤 위에 놓인 판 위에 있다 ============ */
+
+.wrap,.scene{position:relative;z-index:3}
+
+.scene{
+  animation:sceneIn .5s cubic-bezier(.2,.8,.3,1) both;
+}
+@keyframes sceneIn{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:none}}
+
+/* ============ 글자 ============ */
+
+h1,h2,h3{font-family:var(--f-display);font-weight:400}
+
+.scene h2{
+  font-size:clamp(30px,4.4vw,44px);line-height:1.22;letter-spacing:-.012em;
+  margin:0 0 20px;padding-bottom:0;color:#F1F5FA;
+  text-shadow:0 2px 0 rgba(4,8,14,.85), 0 0 34px rgba(198,214,230,.14);
+}
+.scene h2::after{display:none}
+
+/* 표제 앞의 붓 한 획 */
+.scene h2::before{
+  content:"";display:block;width:64px;height:3px;margin:0 0 16px;
+  background:linear-gradient(90deg,var(--star) 0 42%,rgba(227,180,87,.35) 70%,transparent);
+  border-radius:2px 6px 6px 2px;
+  transform:skewX(-22deg);
+}
+
+.eyebrow{
+  display:flex;align-items:center;gap:10px;
+  font-family:var(--f-mono);font-size:10.5px;letter-spacing:.24em;
+  color:var(--star);margin:0 0 12px;text-transform:none;
+}
+.eyebrow::after{
+  content:"";flex:1 1 auto;height:1px;
+  background:linear-gradient(90deg,var(--rule),transparent 88%);
+}
+
+.narr{
+  font-family:var(--f-doc);font-size:clamp(16px,1.35vw,18.5px);
+  line-height:1.95;color:#D3DCE7;max-width:60ch;margin:0 0 20px;
+}
+.narr em{color:var(--star-2);font-style:normal}
+.narr strong{color:#F1F5FA;font-weight:700}
+
+.cite,.cite-inline{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.09em;color:var(--dim)}
+
+.hintline{
+  font-family:var(--f-mono);font-size:11px;letter-spacing:.06em;color:var(--dim);
+  margin:0;line-height:1.8;
+}
+
+/* ============ 시그니처 — 팔각 별 ============ */
+
+.starmark{width:15px;height:15px;fill:var(--star);flex:0 0 auto;opacity:.9}
+.starmark.big{width:22px;height:22px}
+
+/* ============ 장면 그림 — 필름 스틸처럼 ============ */
+
+.plate{
+  position:relative;margin:0 0 26px;border-radius:2px;overflow:hidden;
+  background:#060B14;
+  border:1px solid var(--line);
+  box-shadow:
+    0 0 0 1px rgba(227,180,87,.10) inset,
+    0 26px 60px -34px rgba(0,0,0,.95);
+}
+.plate .scene-img{
+  display:block;width:100%;height:auto;
+  filter:saturate(.94) contrast(1.03);
+}
+.plate-vig{
+  position:absolute;left:0;right:0;top:0;height:100%;pointer-events:none;
+  background:radial-gradient(128% 100% at 50% 46%,transparent 62%,rgba(5,10,19,.42) 100%);
+}
+.plate{display:flex;flex-direction:column}
+.plate .scene-img{flex:0 0 auto}
+.plate figcaption{
+  position:static;
+  display:flex;align-items:baseline;gap:11px;flex-wrap:wrap;
+  padding:12px 15px 13px;
+  border-top:1px solid var(--line);
+  background:var(--ground-2);
+  font-family:var(--f-body);font-size:12.5px;color:#B9C7D8;line-height:1.65;
+}
+.repro{
+  font-family:var(--f-mono);font-size:9px;letter-spacing:.16em;color:var(--star);
+  border:1px solid var(--rule);padding:3px 7px;border-radius:1px;
+  background:rgba(4,9,17,.6);flex:0 0 auto;
+}
+
+/* 전투 연출은 그림 위에 겹친다 */
+.plate.fx .fx-smoke,.plate.fx .fx-flash{bottom:0}
+
+/* ============ 단추 — 그림 속 금색 띠. 양 끝이 빛에 녹는다 ============ */
+
+.btn{
+  position:relative;overflow:hidden;
+  font:inherit;font-family:var(--f-body);font-size:14.5px;font-weight:500;
+  letter-spacing:.04em;padding:15px 34px;border-radius:2px;cursor:pointer;
+  color:#1B1408;
+  border:0;
+  background:
+    linear-gradient(180deg,#F6DDA4 0%,#E3B457 46%,#C99A38 100%);
+  box-shadow:
+    0 1px 0 rgba(255,248,229,.6) inset,
+    0 -1px 0 rgba(120,86,20,.5) inset,
+    0 14px 30px -18px rgba(227,180,87,.9);
+  transition:.2s;
+}
+.btn::after{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(90deg,rgba(255,252,240,.5),transparent 22%,transparent 78%,rgba(255,252,240,.5));
+  opacity:.35;
+}
+.btn:hover{
+  background:linear-gradient(180deg,#FFF0CB 0%,#F2CB7E 46%,#D9AB4C 100%);
+  transform:translateY(-1px);
+  box-shadow:0 1px 0 rgba(255,252,240,.7) inset,0 18px 34px -18px rgba(227,180,87,1);
+}
+.btn:active{transform:none;box-shadow:0 2px 5px rgba(0,0,0,.45) inset}
+.btn:focus-visible{outline:2px solid var(--star-2);outline-offset:3px}
+
+.btn.ghost{
+  background:transparent;color:var(--text);font-weight:400;
+  border:1px solid var(--line-2);box-shadow:none;
+}
+.btn.ghost::after{display:none}
+.btn.ghost:hover{
+  background:rgba(227,180,87,.08);border-color:var(--star);color:var(--star-2);
+  transform:none;box-shadow:none;
+}
+.btn:disabled,.btn:disabled:hover{
+  background:linear-gradient(180deg,#26344A,#17222F);
+  color:#5E7288;box-shadow:none;transform:none;cursor:not-allowed;
+  border:1px solid var(--line);
+}
+.btn:disabled::after{display:none}
+.btn.small{padding:10px 20px;font-size:13px}
+
+.actbar{
+  display:flex;align-items:center;gap:20px;flex-wrap:wrap;
+  margin:34px 0 0;padding:24px 0 0;position:relative;
+}
+.actbar::before{
+  content:"";position:absolute;left:0;right:0;top:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--rule) 12%,var(--rule) 62%,transparent);
+}
+
+/* ============ 선택지 ============ */
+
+.opts{display:flex;flex-direction:column;gap:12px}
+.opt{
+  position:relative;width:100%;text-align:left;
+  background:linear-gradient(100deg,var(--panel),rgba(17,28,46,.72));
+  border:1px solid var(--line);border-left:2px solid var(--line-2);
+  border-radius:2px;color:var(--text);font:inherit;padding:18px 20px;
+  cursor:pointer;transition:.2s;overflow:hidden;
+}
+.opt:hover{
+  background:linear-gradient(100deg,var(--panel-2),rgba(24,38,59,.8));
+  border-left-color:var(--star);transform:translateX(4px);
+  box-shadow:-3px 0 22px -12px rgba(227,180,87,.85);
+}
+.opt:focus-visible{outline:2px solid var(--star);outline-offset:2px}
+.opt .t{display:block;font-family:var(--f-body);font-size:16px;color:#F1F5FA;margin-bottom:5px}
+.opt .s{display:block;font-size:13px;color:var(--muted);line-height:1.65}
+
+.opt.has-pic{display:grid;grid-template-columns:158px 1fr;padding:0;align-items:stretch}
+.opt.has-pic .opt-b{padding:17px 20px}
+.opt-pic{min-height:100px}
+.opt-pic::after{
+  background:linear-gradient(90deg,transparent 48%,rgba(17,28,46,.92) 100%);
+}
+.opt.has-pic:hover .opt-pic img{filter:saturate(1.02) brightness(1.05);transform:scale(1.05)}
+
+/* ============ 대화 ============ */
+
+.talk,.dlg{
+  position:relative;
+  background:linear-gradient(100deg,rgba(12,20,36,.9),rgba(12,20,36,.5));
+  border:1px solid var(--line);border-radius:2px;
+  padding:20px 22px;margin:0 0 22px;
+}
+.talk{display:grid;grid-template-columns:78px 1fr;gap:18px;align-items:start}
+.talk-face,.dlg-face{
+  border:1px solid var(--line-2);border-radius:1px;overflow:hidden;
+  box-shadow:0 0 0 3px rgba(5,10,19,.8);
+}
+.talk-face img,.dlg-face img{filter:saturate(.9) contrast(1.04)}
+.talk-who,.dlg-who{
+  font-family:var(--f-display);font-size:19px;color:#F1F5FA;margin:0 0 4px;
+}
+.talk-meta,.dlg-meta{
+  display:block;font-family:var(--f-mono);font-size:10px;letter-spacing:.13em;
+  color:var(--star);margin-top:5px;
+}
+.talk-said,.dlg-said{
+  font-family:var(--f-doc);font-size:clamp(16px,1.4vw,19px);line-height:1.9;
+  color:#DCE4EE;margin:8px 0 0;max-width:46ch;
+}
+.dlg{display:grid;grid-template-columns:186px 1fr;gap:28px;align-items:center;padding:24px}
+.dlg-line{font-size:12.5px;color:var(--dim);margin:12px 0 0}
+
+.myline{
+  font-family:var(--f-doc);font-size:16.5px;color:var(--star-2);
+  margin:0 0 24px;padding:13px 18px;
+  border-left:2px solid var(--star);
+  background:linear-gradient(90deg,rgba(227,180,87,.10),transparent 70%);
+}
+
+/* ============ 알림 상자 ============ */
+
+.note-box{
+  position:relative;background:var(--ground-2);
+  border:1px solid var(--line);border-left:2px solid var(--line-2);
+  border-radius:2px;padding:20px 22px;margin:0 0 24px;
+}
+.note-box h3{
+  font-family:var(--f-mono);font-size:10.5px;letter-spacing:.16em;font-weight:400;
+  color:var(--star);margin:0 0 11px;
+}
+.note-box p{font-size:14px;line-height:1.82;color:#C4D0DE;margin:0;max-width:64ch}
+.note-box p + p{margin-top:11px}
+.note-box.good{border-left-color:var(--jade)}
+.note-box.good h3{color:var(--jade)}
+.note-box.warn{border-left-color:var(--red)}
+.note-box.warn h3{color:var(--red-2)}
+
+/* ============ 상황 띠 (HUD) ============ */
+
+.board{
+  position:relative;
+  display:flex;align-items:center;gap:24px;flex-wrap:wrap;
+  padding:14px 0 13px;margin:0 0 30px;
+  background:none;border:0;
+}
+.board::before,.board::after{
+  content:"";position:absolute;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--rule) 10%,var(--rule) 90%,transparent);
+}
+.board::before{top:0}
+.board::after{bottom:0}
+
+.slug{
+  display:flex;align-items:center;gap:9px;
+  font-family:var(--f-mono);font-size:12px;letter-spacing:.13em;color:#C4D0DE;
+}
+.slug-sep{color:var(--star);opacity:.7}
+.slug-place{color:var(--muted)}
+
+.stats .st-n{font-family:var(--f-mono);font-size:9.5px;letter-spacing:.14em;color:var(--dim)}
+.stats .st-bar{
+  width:64px;height:4px;background:rgba(49,72,106,.55);border-radius:0;overflow:hidden;
+}
+.stats .st-bar > span{background:linear-gradient(90deg,#C99A38,var(--star-2))}
+.stats .st-v{font-family:var(--f-mono);font-size:12.5px;color:var(--star-2)}
+
+.roster{display:flex;gap:7px;flex-wrap:wrap}
+.rchip{
+  display:flex;align-items:center;gap:7px;
+  font-family:var(--f-body);font-size:11.5px;color:#C4D0DE;
+  background:rgba(12,20,36,.75);border:1px solid var(--line);
+  padding:4px 10px 4px 4px;border-radius:1px;transition:.25s;
+}
+.rface{width:22px;height:22px;object-fit:cover;border-radius:1px;filter:saturate(.85)}
+.rchip.gone{color:var(--dim);border-color:rgba(30,46,69,.6);opacity:.5}
+.rchip.gone .rface{filter:grayscale(1) brightness(.4)}
+.rchip.mine{border-color:var(--rule);background:rgba(227,180,87,.07)}
+.rchip.mine::after{content:"★";margin-left:3px;color:var(--star);font-size:9px}
+
+.sndbtn{
+  margin-left:auto;font-family:var(--f-mono);font-size:10.5px;letter-spacing:.12em;
+  background:transparent;color:var(--muted);border:1px solid var(--line);
+  padding:7px 13px;border-radius:1px;cursor:pointer;transition:.2s;
+}
+.sndbtn:hover{border-color:var(--star);color:var(--star)}
+.sndbtn.off{color:var(--dim)}
+
+.aside{
+  flex:1 0 100%;order:9;margin:11px 0 0;padding:11px 0 0;
+  border-top:1px solid var(--line);
+}
+
+/* ============ 단계 표시 ============ */
+
+.stage-top{
+  display:flex;align-items:center;gap:14px;margin:0 0 20px;
+}
+.steps{display:flex;gap:7px;align-items:center}
+.step{
+  display:block;width:26px;height:2px;background:var(--line-2);border-radius:2px;
+  transition:.35s;
+}
+.step.done{background:rgba(227,180,87,.45)}
+.step.on{
+  background:var(--star);width:34px;
+  box-shadow:0 0 12px rgba(227,180,87,.75);
+}
+.count{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.15em;color:var(--dim)}
+
+/* ============ 사료 ============ */
+
+.doc{
+  background:var(--ground-2);border:1px solid var(--line);border-radius:2px;
+  overflow:hidden;transition:.25s;
+}
+.doc.open{border-color:var(--rule)}
+.doc-bar{
+  display:flex;align-items:center;gap:14px;width:100%;
+  background:none;border:0;color:var(--text);font:inherit;
+  padding:15px 17px;cursor:pointer;text-align:left;transition:.2s;
+}
+.doc-bar:hover{background:rgba(24,38,59,.6)}
+.doc-seal{
+  flex:0 0 auto;width:30px;height:30px;display:grid;place-items:center;
+  font-family:var(--f-display);font-size:15px;
+  color:var(--star);border:1px solid var(--rule);border-radius:1px;
+  background:rgba(227,180,87,.06);
+}
+.doc-title{font-size:14.5px;color:#E6ECF5}
+.doc-badges{
+  display:flex;gap:7px;flex-wrap:wrap;margin-top:5px;
+  font-family:var(--f-mono);font-size:9.5px;letter-spacing:.09em;color:var(--dim);
+}
+.doc-badges span::after{content:"·";margin-left:7px;opacity:.5}
+.doc-badges span:last-child::after{display:none}
+.doc-cost{
+  margin-left:auto;font-family:var(--f-mono);font-size:10px;letter-spacing:.13em;
+  color:var(--star);white-space:nowrap;
+}
+.src-tag{
+  font-family:var(--f-mono);font-size:9px;letter-spacing:.1em;color:var(--dim);
+  border:1px solid var(--line);padding:2px 6px;border-radius:1px;margin-right:8px;
+}
+.src-tag.on{color:var(--star);border-color:var(--rule)}
+
+/* ============ 전황판 ============ */
+
+.bfield{
+  background:linear-gradient(180deg,rgba(12,20,36,.92),rgba(8,14,26,.92));
+  border:1px solid var(--line);border-left:2px solid var(--red);
+  box-shadow:0 0 0 1px rgba(227,180,87,.06) inset;
+}
+.bf-l{color:var(--dim)}
+.bf-time-now{color:var(--star-2);font-size:16px}
+.bf-node.on i{background:var(--red);border-color:var(--red-2)}
+.bf-man{border-color:var(--line-2)}
+.bf-man.front{border-color:var(--star);box-shadow:0 0 0 1px var(--rule)}
+.bf-t{color:var(--star)}
+
+/* ============ 명부·증언 ============ */
+
+.wit{background:var(--ground-2);border-color:var(--line)}
+.w-row + .w-row{border-top-color:var(--line)}
+.w-h{color:var(--star)}
+.w-row p{color:#C4D0DE}
+
+.ledgerbook{
+  background:var(--ground-2);border:1px solid var(--line);border-radius:2px;
+  padding:24px;margin:0 0 24px;
+}
+.mhead{
+  font-family:var(--f-mono);font-size:10.5px;letter-spacing:.16em;font-weight:400;
+  color:var(--star);margin:0 0 18px;
+}
+.fc-img{border:1px solid var(--line-2)}
+.fc-n{color:#E6ECF5}
+.fc-u{color:var(--dim)}
+.fc.gone .fc-img{filter:grayscale(1) brightness(.45)}
+.fc.survived .fc-img{box-shadow:0 0 0 1px var(--rule)}
+
+.card-out{
+  background:var(--night-0);border:1px solid var(--line);border-radius:2px;
+  font-family:var(--f-mono);font-size:11.5px;line-height:1.95;color:#A9BACD;
+  padding:22px;white-space:pre-wrap;max-height:340px;overflow:auto;
+}
+
+/* ============ 전사 ============ */
+
+.fallen-screen{animation:fallenIn .8s ease-out both}
+@keyframes fallenIn{from{opacity:0;filter:blur(6px)}to{opacity:1;filter:none}}
+.fallen-tag{
+  font-family:var(--f-mono);font-size:10.5px;letter-spacing:.24em;color:var(--red-2);
+}
+.fallen-name{
+  font-family:var(--f-display);font-size:clamp(34px,5vw,50px);color:#F1F5FA;
+  margin:6px 0 10px;text-shadow:0 2px 0 rgba(4,8,14,.9);
+}
+.keepsake{background:var(--line);border-color:var(--line)}
+.kp{background:var(--ground-2)}
+.kp-l{color:var(--dim)}
+.kp-list li{color:#C4D0DE}
+.kp-keep{color:#E6ECF5}
+.kp-last{color:var(--star);border-top-color:var(--line)}
+.warnline{color:var(--red-2)}
+
+/* ============ 주둔지 ============ */
+
+.camp{border:1px solid var(--line);box-shadow:0 26px 60px -34px rgba(0,0,0,.95)}
+.camp-sheen{
+  background:
+    radial-gradient(118% 88% at 50% 34%,transparent 42%,rgba(5,10,19,.62) 100%),
+    linear-gradient(to bottom,rgba(5,10,19,.24),transparent 22%);
+}
+.unit-tag{
+  background:rgba(6,11,20,.88);border:1px solid var(--line);
+  color:#E6ECF5;
+}
+.unit.has .unit-tag{border-color:var(--rule)}
+.unit-tag em{color:var(--star)}
+.unit-tag i{color:var(--dim)}
+.unit-fig{border-color:var(--line-2);box-shadow:0 10px 22px -12px rgba(0,0,0,.95)}
+
+/* ============ 배치 ============ */
+
+.sq{
+  background:var(--panel);border:1px solid var(--line);border-radius:2px;
+  transition:.2s;
+}
+.sq:hover{background:var(--panel-2);border-color:var(--line-2)}
+.sq.on{border-color:var(--star);background:rgba(227,180,87,.09)}
+.sqn{color:#F1F5FA}
+.sqm{color:var(--dim)}
+.sqs{color:var(--muted)}
+.sqs.fit{color:var(--star)}
+
+/* ============ 설정 ============ */
+
+.setrow{background:var(--panel)}
+.setrow:hover{background:var(--panel-2)}
+.sr-v{border-color:var(--rule)}
+
+/* ============ 시작 화면 ============ */
+
+.keyart{
+  border:1px solid var(--line-2);
+  box-shadow:
+    0 0 0 1px rgba(227,180,87,.14) inset,
+    0 40px 90px -46px rgba(0,0,0,1),
+    0 0 120px -50px rgba(227,180,87,.32);
+}
+.byline{color:var(--dim)}
+
+/* ============ 반응 ============ */
+
+@media (max-width:760px){
+  .talk{grid-template-columns:60px 1fr;gap:13px}
+  .dlg{grid-template-columns:100px 1fr;gap:15px;padding:17px}
+  .opt.has-pic{grid-template-columns:110px 1fr}
+  .board{gap:14px}
+  .scene h2::before{width:48px}
+}
+
+/* ============ 움직임 줄이기 ============ */
+
+html.calm .fog{animation:none}
+html.calm .scene{animation:none}
+
+/* ============ 상황 띠를 두 단으로 — 날짜·지표는 윗줄, 명단은 아랫줄 ============ */
+
+.board{display:flex;flex-wrap:wrap;align-items:center;gap:9px 24px}
+.slug{flex:0 1 auto;order:1}
+.stats{flex:0 1 auto;order:2}
+.sndbtn{order:3;margin-left:auto}
+.roster{
+  order:4;flex:1 0 100%;margin-top:3px;padding-top:10px;
+  border-top:1px solid rgba(30,46,69,.85);
+  gap:6px;
+}
+.rchip{font-size:11px;padding:3px 9px 3px 3px}
+.rface{width:20px;height:20px}
+.aside{order:9;flex:1 0 100%}
+
+@media (max-width:760px){
+  .roster{gap:5px}
+  .rchip{font-size:10.5px}
+  .rface{width:18px;height:18px}
+}
+
+.cite{max-width:70ch;line-height:1.9;margin:0 0 18px}
+.facegrid .fc-img.none{
+  border:1px dashed var(--line-2);color:var(--dim);
+  font-family:var(--f-mono);font-size:9.5px;letter-spacing:.1em;line-height:1.9;
+}
+
+/* ============================================================================
+   무대 — 배경 위에 인물이 서고, 아래에서 말한다
+   ========================================================================= */
+
+.vn{position:relative;margin:0 0 26px}
+
+.vn-scene{
+  position:relative;width:100%;aspect-ratio:16 / 9;
+  border:1px solid var(--line);border-radius:3px;overflow:hidden;
+  background:#060B14;
+  box-shadow:
+    0 0 0 1px rgba(227,180,87,.10) inset,
+    0 30px 70px -38px rgba(0,0,0,.98);
+}
+.vn-bg{
+  position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+  filter:saturate(.8) brightness(.62) contrast(1.02);
+  transform:scale(1.04);
+  animation:vnBg 1.2s ease-out both;
+}
+@keyframes vnBg{from{opacity:0;transform:scale(1.09)}to{opacity:1;transform:scale(1.04)}}
+.vn-veil{
+  position:absolute;inset:0;pointer-events:none;
+  background:
+    radial-gradient(110% 78% at 50% 34%,transparent 40%,rgba(5,10,19,.68) 100%),
+    linear-gradient(to top,rgba(5,10,19,.94) 4%,rgba(5,10,19,.30) 32%,transparent 58%);
+}
+
+/* 지어낸 사람 — 그림으로 선다 */
+.vn-actor{
+  position:absolute;right:5%;bottom:0;
+  height:97%;width:auto;max-width:52%;object-fit:contain;object-position:bottom;
+  filter:drop-shadow(0 18px 26px rgba(0,0,0,.75)) saturate(.96) brightness(.98);
+  animation:actorIn .55s cubic-bezier(.2,.8,.3,1) both;
+  z-index:2;
+}
+@keyframes actorIn{
+  from{opacity:0;transform:translateY(16px) scale(.985)}
+  to{opacity:1;transform:none}
+}
+
+/* 실존 인물 — 사진으로, 액자째 */
+.vn-photo{
+  position:absolute;right:7%;bottom:9%;z-index:2;
+  display:block;width:min(27%,250px);
+  padding:11px 11px 34px;
+  background:linear-gradient(170deg,#E8E2D2,#CFC7B4);
+  border:1px solid #B3AB93;
+  box-shadow:0 22px 40px -18px rgba(0,0,0,.95), 0 0 0 1px rgba(0,0,0,.35);
+  transform:rotate(-1.4deg);
+  animation:actorIn .55s cubic-bezier(.2,.8,.3,1) both;
+}
+.vn-photo img{
+  display:block;width:100%;aspect-ratio:3/4;object-fit:cover;
+  filter:grayscale(1) contrast(1.12) sepia(.14);
+  border:1px solid rgba(0,0,0,.35);
+}
+.vn-photo-tag{
+  position:absolute;left:0;right:0;bottom:11px;text-align:center;
+  font-family:var(--f-mono);font-size:9px;letter-spacing:.3em;color:#6B6455;
+}
+
+/* 대사창 — 그림 아래를 덮으며 시작해, 내용만큼 자란다 */
+.vn-box{
+  position:relative;z-index:4;
+  margin:-13% 3% 0;padding:26px 28px 22px;
+  background:linear-gradient(180deg,rgba(9,16,28,.96),rgba(6,11,20,.985));
+  border:1px solid var(--line-2);border-radius:2px;
+  box-shadow:
+    0 0 0 1px rgba(227,180,87,.13) inset,
+    0 22px 48px -24px rgba(0,0,0,1);
+  animation:boxIn .45s cubic-bezier(.2,.8,.3,1) both;
+}
+@keyframes boxIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+/* 이름표 — 창 위로 솟는다 */
+.vn-name{
+  position:absolute;top:0;left:22px;transform:translateY(-52%);
+  display:inline-flex;align-items:baseline;gap:11px;
+  padding:8px 18px;
+  font-family:var(--f-display);font-size:19px;color:#0F1420;
+  background:linear-gradient(180deg,#F6DDA4,#E3B457 58%,#CDA243);
+  border:1px solid #F3D79B;border-radius:2px;
+  box-shadow:0 1px 0 rgba(255,250,235,.6) inset, 0 10px 22px -12px rgba(0,0,0,.9);
+}
+.vn-name em{
+  font-style:normal;font-family:var(--f-mono);font-size:10px;letter-spacing:.09em;
+  color:#5A4514;
+}
+
+.vn-lead{
+  font-family:var(--f-doc);font-size:15.5px;line-height:1.9;color:#9FB2C6;
+  margin:10px 0 0;max-width:66ch;
+}
+.vn-lead + .vn-say{margin-top:14px;padding-top:14px;border-top:1px solid rgba(49,72,106,.5)}
+.vn-lead em{color:var(--star-2);font-style:normal}
+.vn-lead strong{color:#DCE4EE;font-weight:700}
+
+.vn-say{
+  font-family:var(--f-doc);font-size:clamp(17px,1.6vw,21px);line-height:1.88;
+  color:#EDF2F8;margin:12px 0 0;max-width:52ch;
+  text-shadow:0 1px 0 rgba(0,0,0,.5);
+}
+
+/* 계속 표시 */
+.vn-tip{
+  position:absolute;right:18px;bottom:14px;width:11px;height:11px;
+  border-right:2px solid var(--star);border-bottom:2px solid var(--star);
+  transform:rotate(45deg);opacity:.75;
+  animation:tipBob 1.5s ease-in-out infinite;
+}
+@keyframes tipBob{0%,100%{transform:rotate(45deg) translate(0,0);opacity:.35}
+                  50%{transform:rotate(45deg) translate(2px,2px);opacity:.9}}
+
+/* 이름표만 있고 대사가 없을 때(서술 전용) */
+.vn:not(.has-actor):not(.has-photo) .vn-box{margin-top:-11%}
+
+@media (max-width:760px){
+  .vn-box{margin:-16% 2% 0;padding:22px 18px 18px}
+  .vn-name{font-size:16px;padding:6px 13px;left:14px}
+  .vn-name em{display:none}
+  .vn-say{font-size:16px}
+  .vn-lead{font-size:14px}
+  .vn-actor{right:2%;max-width:64%;height:92%}
+  .vn-photo{width:34%;right:4%}
+}
+
+html.calm .vn-bg,html.calm .vn-actor,html.calm .vn-box,html.calm .vn-photo{animation:none}
+html.calm .vn-tip{animation:none;opacity:.7}
+
+/* 액자는 대사창에 잘리지 않게 올려 세운다 */
+.vn-photo{bottom:20%;width:min(23%,210px)}
+@media (max-width:760px){ .vn-photo{bottom:24%;width:31%} }
+
+/* ============================================================================
+   한 화면에 담는다 — 무대·대사·선택지가 스크롤 없이 들어오도록
+   ========================================================================= */
+
+.vn-scene{
+  aspect-ratio:auto;
+  height:clamp(190px, 40vh, 430px);
+}
+.vn-box{
+  margin:-58px 3% 0;padding:22px 26px 18px;
+}
+.vn-lead{font-size:14.5px;line-height:1.8;margin:6px 0 0}
+.vn-lead + .vn-say{margin-top:11px;padding-top:11px}
+.vn-say{font-size:clamp(16px,1.45vw,19px);line-height:1.8;margin:8px 0 0}
+.vn-name{font-size:17px;padding:7px 15px}
+
+.opts{gap:9px}
+.opt{padding:14px 17px}
+.opt .t{font-size:15px;margin-bottom:3px}
+.opt .s{font-size:12.5px;line-height:1.55}
+.opt.has-pic{grid-template-columns:124px 1fr}
+.opt.has-pic .opt-b{padding:13px 17px}
+.opt-pic{min-height:76px}
+
+.actbar{margin:22px 0 0;padding:18px 0 0}
+.plate{margin:0 0 20px}
+
+/* 글자가 다 나오기 전에는 고르지 못한다 */
+.scene.typing .opts,
+.scene.typing .actbar{opacity:.22;pointer-events:none;transition:opacity .3s}
+.scene .opts,.scene .actbar{transition:opacity .3s}
+.scene.typing .vn{cursor:pointer}
+.scene.typing .vn-tip{animation:none;opacity:0}
+
+/* 이름 적는 칸이 대사창 안에 들어왔다 */
+.vn-box .nb-in{margin:14px 0 4px}
+.vn-box .nb-input{
+  flex:1 1 190px;font-size:20px;padding:10px 14px;
+}
+.vn-box .nb-note{margin:6px 0 0}
+
+@media (max-width:760px){
+  .vn-scene{height:clamp(160px,30vh,280px)}
+  .vn-box{margin:-46px 2% 0;padding:18px 16px 15px}
+  .opt.has-pic{grid-template-columns:96px 1fr}
+}
+
+/* 액자는 무대 높이에 맞춰 선다 */
+.vn-photo{
+  height:74%;width:auto;bottom:16%;right:6%;
+  display:flex;padding:8px 8px 25px;
+}
+.vn-photo img{height:100%;width:auto;aspect-ratio:3/4}
+.vn-photo-tag{bottom:7px;font-size:8.5px}
+
+/* 무대가 있는 화면은 아래를 조인다 */
+.vn ~ .ev-src{margin:0 0 12px}
+.vn ~ .ev-src summary{padding:9px 14px}
+.vn ~ .actbar{margin-top:14px;padding-top:14px}
+
+@media (max-width:760px){
+  .vn-photo{height:66%;bottom:20%}
+}
+
+/* 주둔지도 한 화면에 */
+.camp{aspect-ratio:auto;height:clamp(210px,44vh,450px);margin:0 0 18px}
+.camp-bg{width:100%;height:100%;object-fit:cover}
+@media (max-width:760px){ .camp{height:clamp(180px,34vh,300px)} }
+
+/* ============ 낮은 화면에서도 스크롤 없이 ============ */
+
+.board{padding:10px 0 9px;margin:0 0 18px;gap:7px 20px}
+.roster{margin-top:2px;padding-top:8px}
+.aside{margin:8px 0 0;padding:8px 0 0;font-size:13.5px}
+
+.vn-scene{height:clamp(150px, 33vh, 400px)}
+.vn-box{margin:-52px 3% 0;padding:19px 24px 15px}
+.vn{margin:0 0 18px}
+.camp{height:clamp(180px, 36vh, 420px)}
+
+.wrap{padding-top:14px}
+
+@media (max-height:820px){
+  .vn-scene{height:30vh}
+  .camp{height:32vh}
+  .vn-say{font-size:16.5px;line-height:1.72}
+  .vn-lead{font-size:13.5px;line-height:1.7}
+  .opt{padding:11px 15px}
+  .opt .t{font-size:14.5px}
+  .opt .s{font-size:12px}
+  .opt.has-pic{grid-template-columns:106px 1fr}
+  .opt-pic{min-height:64px}
+  .actbar{margin-top:13px;padding-top:13px}
+  .btn{padding:12px 26px}
+}
+
+.frame{padding-bottom:56px}
+@media (max-height:820px){
+  .frame{padding-bottom:24px}
+  .board{padding:8px 0 7px;margin:0 0 14px}
+  .vn{margin:0 0 13px}
+  .actbar{margin-top:12px;padding-top:11px}
+  .hintline{font-size:10.5px}
+}
+
+/* ============ 전황판을 무대 위에 얹는다 ============ */
+
+.vn-over{
+  position:absolute;left:0;right:0;top:0;z-index:3;pointer-events:none;
+  padding:9px 11px 0;
+}
+.vn-over .bfield{
+  margin:0;padding:9px 13px 8px;border-radius:2px;
+  background:linear-gradient(180deg,rgba(5,10,19,.9),rgba(5,10,19,.66));
+  backdrop-filter:blur(3px);
+  border:1px solid rgba(49,72,106,.7);border-left:2px solid var(--red);
+}
+.vn-over .bf-row{min-height:0;gap:10px}
+.vn-over .bf-row + .bf-row{margin-top:5px;padding-top:5px;border-top-color:rgba(49,72,106,.45)}
+.vn-over .bf-l{flex-basis:40px;font-size:9px}
+.vn-over .bf-time-now{font-size:13px}
+.vn-over .bf-node{font-size:8.5px;padding-top:12px}
+.vn-over .bf-node i{width:7px;height:7px}
+.vn-over .bf-node::before,.vn-over .bf-node::after{top:5px}
+.vn-over .bf-man{width:17px;height:17px}
+.vn-over .bf-n{font-size:10px}
+.vn-over .bf-shots i{height:10px;width:3px}
+.vn-over .bf-log{margin:5px 0 0;padding:5px 0 0}
+.vn-over .bf-log li{font-size:11px;line-height:1.55}
+.vn-over .bf-t{font-size:9.5px}
+
+/* 전황판이 있으면 인물은 아래쪽에만 선다 */
+.vn-scene:has(.vn-over) .vn-actor{height:82%}
+
+/* ============================================================================
+   무대가 화면을 채운다 — 배경·인물은 전체 화면, 대사창은 아래를 덮는다
+   ========================================================================= */
+
+.vn{
+  position:relative;
+  width:100vw;margin-left:calc(50% - 50vw);
+  height:100vh;height:100dvh;
+  overflow:hidden;background:#050A13;
+  animation:none;
+}
+.vn-bg{
+  position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+  filter:saturate(.84) brightness(.66) contrast(1.02);
+  transform:scale(1.03);
+  animation:vnBg 1.3s ease-out both;
+}
+@keyframes vnBg{from{opacity:0;transform:scale(1.07)}to{opacity:1;transform:scale(1.03)}}
+.vn-veil{
+  position:absolute;inset:0;pointer-events:none;
+  background:
+    radial-gradient(96% 66% at 50% 30%,transparent 42%,rgba(5,10,19,.62) 100%),
+    linear-gradient(to top,rgba(4,9,17,.96) 2%,rgba(4,9,17,.34) 34%,transparent 62%),
+    linear-gradient(to bottom,rgba(4,9,17,.72),transparent 18%);
+}
+
+/* 인물 — 화면 높이만큼 크게 */
+.vn-actor{
+  position:absolute;right:8%;bottom:0;
+  height:88vh;height:88dvh;width:auto;max-width:46vw;
+  object-fit:contain;object-position:bottom;
+  filter:drop-shadow(0 24px 34px rgba(0,0,0,.8)) saturate(.98);
+  animation:actorIn .6s cubic-bezier(.2,.8,.3,1) both;
+  z-index:2;
+}
+@keyframes actorIn{from{opacity:0;transform:translateY(22px) scale(.99)}to{opacity:1;transform:none}}
+
+/* 실존 인물 — 액자에 든 사진 */
+.vn-photo{
+  position:absolute;right:9%;bottom:38%;z-index:2;
+  display:flex;height:44vh;width:auto;
+  padding:12px 12px 34px;
+  background:linear-gradient(170deg,#E8E2D2,#CFC7B4);
+  border:1px solid #B3AB93;
+  box-shadow:0 26px 46px -18px rgba(0,0,0,.95), 0 0 0 1px rgba(0,0,0,.35);
+  transform:rotate(-1.4deg);
+  animation:actorIn .6s cubic-bezier(.2,.8,.3,1) both;
+}
+.vn-photo img{height:100%;width:auto;aspect-ratio:3/4;object-fit:cover;
+  filter:grayscale(1) contrast(1.12) sepia(.14);border:1px solid rgba(0,0,0,.35)}
+.vn-photo-tag{
+  position:absolute;left:0;right:0;bottom:11px;text-align:center;
+  font-family:var(--f-mono);font-size:9px;letter-spacing:.3em;color:#6B6455;
+}
+
+/* 전황판 — 무대 위쪽에 얹는다 */
+.vn-over{
+  position:absolute;left:0;right:0;top:clamp(64px,9vh,104px);z-index:3;
+  padding:0 clamp(16px,4vw,54px);pointer-events:none;
+}
+
+/* 대사창 — 화면 아래를 덮고, 선택지까지 안에 담는다 */
+.vn-panel{
+  position:absolute;left:0;right:0;bottom:0;z-index:5;
+  margin:0;padding:26px clamp(18px,5vw,60px) 22px;
+  max-height:62vh;overflow-y:auto;overscroll-behavior:contain;
+  background:linear-gradient(to top,rgba(4,9,17,.985) 62%,rgba(5,11,21,.88));
+  border:0;border-top:1px solid rgba(49,72,106,.85);
+  box-shadow:0 -1px 0 rgba(227,180,87,.22), 0 -26px 60px -30px rgba(0,0,0,1);
+  animation:boxIn .45s cubic-bezier(.2,.8,.3,1) both;
+}
+@keyframes boxIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+.vn-name{
+  position:absolute;top:0;left:clamp(18px,5vw,60px);transform:translateY(-52%);
+  display:inline-flex;align-items:baseline;gap:11px;
+  padding:8px 20px;
+  font-family:var(--f-display);font-size:20px;color:#0F1420;
+  background:linear-gradient(180deg,#F6DDA4,#E3B457 58%,#CDA243);
+  border:1px solid #F3D79B;border-radius:2px;
+  box-shadow:0 1px 0 rgba(255,250,235,.6) inset, 0 10px 22px -12px rgba(0,0,0,.9);
+}
+.vn-name em{font-style:normal;font-family:var(--f-mono);font-size:10px;letter-spacing:.09em;color:#5A4514}
+
+.vn-text{max-width:96ch}
+.vn-lead{
+  font-family:var(--f-doc);font-size:clamp(14px,1.15vw,16px);line-height:1.85;
+  color:#9FB2C6;margin:8px 0 0;
+}
+.vn-lead em{color:var(--star-2);font-style:normal}
+.vn-lead strong{color:#DCE4EE;font-weight:700}
+.vn-lead + .vn-say{margin-top:12px;padding-top:12px;border-top:1px solid rgba(49,72,106,.55)}
+.vn-say{
+  font-family:var(--f-doc);font-size:clamp(17px,1.55vw,22px);line-height:1.85;
+  color:#EFF4FA;margin:10px 0 0;max-width:60ch;
+  text-shadow:0 1px 0 rgba(0,0,0,.55);
+}
+
+.vn-tip{
+  position:absolute;right:clamp(16px,4vw,44px);bottom:14px;width:11px;height:11px;
+  border-right:2px solid var(--star);border-bottom:2px solid var(--star);
+  transform:rotate(45deg);opacity:.75;animation:tipBob 1.5s ease-in-out infinite;
+}
+@keyframes tipBob{0%,100%{transform:rotate(45deg) translate(0,0);opacity:.3}
+                  50%{transform:rotate(45deg) translate(2px,2px);opacity:.9}}
+
+/* 대사창 안으로 들어온 것들 */
+.vn-panel .opts{margin:16px 0 0;gap:9px}
+.vn-panel .opts:not(:has(.has-pic)){
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+}
+.vn-panel .opt{background:linear-gradient(100deg,rgba(19,31,50,.92),rgba(14,24,40,.78))}
+.vn-panel .actbar{
+  margin:14px 0 0;padding:13px 0 0;
+}
+.vn-panel .actbar::before{
+  background:linear-gradient(90deg,transparent,rgba(49,72,106,.7) 10%,rgba(49,72,106,.7) 70%,transparent);
+}
+.vn-panel .note-box{margin:14px 0 0;background:rgba(9,17,30,.8)}
+.vn-panel .ev-src{margin:12px 0 0;background:rgba(9,17,30,.8)}
+.vn-panel .docs{margin-top:10px}
+.vn-panel .nb-in{margin:14px 0 2px}
+.vn-panel .nb-note{margin:6px 0 0}
+
+/* 무대가 뜬 화면은 페이지가 스크롤되지 않는다 */
+body.staged{overflow:hidden}
+body.staged .frame{max-width:none;padding:0}
+body.staged #board{
+  position:absolute;top:0;left:0;right:0;z-index:8;
+  margin:0;padding:11px clamp(18px,5vw,60px) 14px;
+  background:linear-gradient(to bottom,rgba(4,9,17,.94),rgba(4,9,17,.42) 72%,transparent);
+  border:0;
+}
+body.staged #board::before,body.staged #board::after{display:none}
+body.staged .roster{border-top-color:rgba(49,72,106,.5)}
+body.staged .scene{animation:none}
+body.staged #grain{z-index:9}
+
+@media (max-width:760px){
+  .vn-actor{right:0;max-width:74vw;height:74vh}
+  .vn-photo{height:34vh;right:5%;bottom:46%}
+  .vn-name{font-size:16px;padding:6px 14px}
+  .vn-name em{display:none}
+  .vn-panel{padding:22px 16px 18px;max-height:68vh}
+  .vn-say{font-size:16.5px}
+  .vn-panel .opts{grid-template-columns:1fr}
+}
+
+html.calm .vn-bg,html.calm .vn-actor,html.calm .vn-panel,html.calm .vn-photo{animation:none}
+html.calm .vn-tip{animation:none;opacity:.7}
+
+/* 이름표가 대사창 밖으로 솟아도 잘리지 않게 */
+.vn-panel{overflow:visible;max-height:none}
+.vn-scroll{
+  max-height:calc(60vh - 60px);overflow-y:auto;overscroll-behavior:contain;
+  padding-right:4px;
+}
+.vn-scroll::-webkit-scrollbar{width:6px}
+.vn-scroll::-webkit-scrollbar-thumb{background:rgba(49,72,106,.9);border-radius:3px}
+.vn-panel .vn-name{z-index:6}
+
+/* 무대 화면은 남는 여백을 두지 않는다 */
+body.staged .wrap{padding:0;margin:0}
+body.staged #screen{margin:0;padding:0;display:block}
+body.staged .scene{margin:0;padding:0}
+.vn{margin:0 0 0 calc(50% - 50vw)}
+
+/* 주둔지도 무대처럼 화면을 채운다 */
+.camp{
+  width:100vw;margin:0 0 0 calc(50% - 50vw);
+  height:100vh;height:100dvh;
+  border:0;border-radius:0;box-shadow:none;
+}
+.camp-bg{filter:saturate(.88) brightness(.72)}
+.camp-sheen{
+  background:
+    radial-gradient(96% 70% at 50% 34%,transparent 44%,rgba(5,10,19,.62) 100%),
+    linear-gradient(to bottom,rgba(4,9,17,.72),transparent 16%),
+    linear-gradient(to top,rgba(4,9,17,.88) 2%,transparent 26%);
+}
+body.campstage{overflow:hidden}
+body.campstage .wrap{padding:0}
+body.campstage #screen{margin:0;padding:0}
+body.campstage .scene{margin:0}
+body.campstage .frame{max-width:none;padding:0}
+body.campstage #board{
+  position:absolute;top:0;left:0;right:0;z-index:8;margin:0;
+  padding:11px clamp(18px,5vw,60px) 14px;
+  background:linear-gradient(to bottom,rgba(4,9,17,.94),rgba(4,9,17,.42) 72%,transparent);
+  border:0;
+}
+body.campstage #board::before,body.campstage #board::after{display:none}
+body.campstage .camp + *{
+  position:absolute;left:0;right:0;bottom:0;z-index:6;
+  padding:20px clamp(18px,5vw,60px);
+  background:linear-gradient(to top,rgba(4,9,17,.97) 60%,rgba(5,11,21,.8));
+  border-top:1px solid rgba(49,72,106,.85);margin:0;
+}
+
+/* 전황판은 상황 띠 아래에서 시작한다 */
+.vn-over{top:clamp(104px,16vh,146px)}
+@media (max-width:760px){ .vn-over{top:clamp(96px,18vh,140px)} }
+
+/* ============================================================================
+   전황 줄 — 그림을 가리지 않고 상황 띠 안에서 산다
+   ========================================================================= */
+
+.bstrip{
+  flex:1 0 100%;order:5;
+  display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+  margin:6px 0 0;padding:8px 12px;
+  background:rgba(9,17,30,.72);
+  border:1px solid rgba(49,72,106,.7);border-left:2px solid var(--red);
+  border-radius:2px;
+}
+.bstrip[hidden]{display:none}
+.bs-l{
+  font-family:var(--f-mono);font-size:9px;letter-spacing:.16em;color:var(--red-2);
+  flex:0 0 auto;
+}
+.bs-time{
+  font-family:var(--f-mono);font-size:13px;color:var(--star-2);
+  font-variant-numeric:tabular-nums;flex:0 0 auto;
+}
+.bstrip .bf-track{flex:1 1 260px;min-width:200px}
+.bstrip .bf-node{font-size:8.5px;padding-top:11px}
+.bstrip .bf-node i{width:7px;height:7px}
+.bstrip .bf-node::before,.bstrip .bf-node::after{top:5px}
+.bstrip .bf-shots{margin-left:0;flex:0 0 auto}
+.bstrip .bf-shots i{height:10px;width:3px}
+.bs-log{
+  flex:0 1 auto;font-size:11px;color:var(--muted);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:34ch;
+}
+.bf-log.tall{
+  list-style:none;margin:0 0 20px;padding:14px 16px;
+  background:var(--ground-2);border:1px solid var(--line);border-left:2px solid var(--red);
+  border-radius:2px;
+}
+
+/* ============================================================================
+   시작 화면 — 화면을 채운다
+   ========================================================================= */
+
+.keyart-full{
+  position:relative;width:100vw;margin-left:calc(50% - 50vw);
+  height:100vh;height:100dvh;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;
+  overflow:hidden;background:#050A13;
+}
+.keyart-blur{
+  position:absolute;inset:-6%;
+  background-size:cover;background-position:center;
+  filter:blur(34px) brightness(.42) saturate(.8);
+}
+.keyart{
+  position:relative;z-index:2;
+  width:min(100vw, calc((100vh - 54px) * 1024 / 572));
+  max-width:none;aspect-ratio:1024 / 572;height:auto;margin:0;
+  border:0;border-radius:0;
+  box-shadow:0 0 90px -20px rgba(0,0,0,.9), 0 0 140px -40px rgba(227,180,87,.28);
+}
+.keyart-full .byline{
+  position:relative;z-index:2;margin:12px 0 0;padding:0 16px;
+  max-width:none;font-size:10px;
+}
+body.titlescreen{overflow:hidden}
+body.titlescreen .frame{max-width:none;padding:0}
+body.titlescreen .wrap{padding:0}
+body.titlescreen #screen{margin:0}
+body.titlescreen .scene{margin:0;animation:none}
+
+/* ============================================================================
+   무대가 아닌 화면도 밤 위에 놓인다
+   ========================================================================= */
+
+#stagebg{
+  position:fixed;inset:0;z-index:1;pointer-events:none;
+  background-size:cover;background-position:center;
+  filter:blur(16px) brightness(.30) saturate(.72);
+  transform:scale(1.06);
+  opacity:0;transition:opacity .8s ease;
+}
+#stagebg::after{
+  content:"";position:absolute;inset:0;
+  background:linear-gradient(to bottom,rgba(5,10,19,.86),rgba(5,10,19,.62) 40%,rgba(5,10,19,.9));
+}
+
+/* 읽는 화면은 조금 더 넓게 */
+.frame{max-width:1080px}
+
+/* 액자는 대사창 위에 온전히 선다 — 잘리지 않는다 */
+.vn-photo{
+  bottom:calc(var(--panel-h, 42vh) + 16px);
+  top:auto;
+  height:min(44vh, calc(100vh - var(--panel-h, 42vh) - 170px));
+  min-height:170px;
+}
+@media (max-width:760px){
+  .vn-photo{
+    height:min(32vh, calc(100vh - var(--panel-h, 46vh) - 140px));
+    min-height:130px;bottom:calc(var(--panel-h, 46vh) + 12px);
+  }
+}
+
+/* ============================================================================
+   대사창은 왼쪽에만. 오른쪽은 인물의 자리로 비워 둔다
+   ========================================================================= */
+
+.vn-panel{
+  left:0;right:clamp(320px, 34%, 480px);
+  padding:26px clamp(18px,3.4vw,44px) 22px;
+  border-right:1px solid rgba(49,72,106,.7);
+  background:linear-gradient(to top,rgba(4,9,17,.985) 58%,rgba(5,11,21,.9));
+}
+.vn-panel::after{
+  content:"";position:absolute;top:0;bottom:0;right:-56px;width:56px;
+  pointer-events:none;
+  background:linear-gradient(90deg,rgba(4,9,17,.86),transparent);
+}
+.vn-text{max-width:none}
+.vn-say{max-width:none}
+.vn-scroll{max-height:calc(62vh - 60px)}
+
+/* 인물은 비워 둔 오른쪽에 온전히 선다 */
+.vn-actor{
+  right:1%;bottom:0;
+  height:94vh;height:94dvh;
+  max-width:clamp(300px, 33vw, 460px);
+}
+.vn-photo{
+  right:3%;bottom:7%;top:auto;
+  height:min(56vh, 520px);min-height:200px;
+  max-width:clamp(280px, 30vw, 420px);
+}
+
+/* 선택지는 한 줄에 하나 — 폭이 좁아졌으므로 */
+.vn-panel .opts:not(:has(.has-pic)){grid-template-columns:1fr}
+
+/* 좁은 화면에서는 예전처럼 아래를 다 덮는다 */
+@media (max-width:900px){
+  .vn-panel{right:0;border-right:0;padding:22px 16px 18px}
+  .vn-panel::after{display:none}
+  .vn-actor{right:0;max-width:74vw;height:74vh}
+  .vn-photo{
+    right:5%;bottom:calc(var(--panel-h, 46vh) + 12px);
+    height:min(32vh, calc(100vh - var(--panel-h, 46vh) - 140px));
+    max-width:44vw;
+  }
+}
+
+/* 인물은 상황 띠 바로 아래에서 시작한다 — 머리가 잘리지 않는다 */
+.vn-actor{
+  top:calc(var(--hud-h, 108px) + 6px);
+  bottom:0;height:auto;
+  object-fit:contain;object-position:top center;
+}
+.vn-photo{
+  top:auto;bottom:6%;
+  height:min(calc(100vh - var(--hud-h, 108px) - 90px), 520px);
+}
+@media (max-width:900px){
+  .vn-actor{
+    top:calc(var(--hud-h, 100px) + 4px);
+    bottom:0;object-position:top center;
+  }
+  .vn-photo{
+    bottom:calc(var(--panel-h, 46vh) + 12px);
+    height:min(30vh, calc(100vh - var(--panel-h, 46vh) - var(--hud-h, 100px) - 40px));
+  }
+}
+
+/* ============ 사격 연출 — 무대가 흔들리고 능선이 번쩍인다 ============ */
+
+.vn-flash{
+  position:absolute;left:0;right:0;top:0;height:64%;
+  pointer-events:none;z-index:3;mix-blend-mode:screen;opacity:0;
+  background:
+    radial-gradient(7% 13% at 18% 46%,rgba(255,232,178,.95),transparent 70%),
+    radial-gradient(6% 11% at 34% 38%,rgba(255,232,178,.85),transparent 70%),
+    radial-gradient(6% 12% at 52% 44%,rgba(255,232,178,.9),transparent 70%),
+    radial-gradient(5% 10% at 68% 36%,rgba(255,232,178,.8),transparent 70%),
+    radial-gradient(7% 13% at 84% 48%,rgba(255,232,178,.9),transparent 70%);
+}
+.vn.hit .vn-flash{animation:flashfire .64s steps(1) 1}
+@keyframes flashfire{
+  0%{opacity:0} 7%{opacity:1} 15%{opacity:.08} 25%{opacity:.92}
+  34%{opacity:.05} 48%{opacity:.78} 58%{opacity:.02} 70%{opacity:.5} 80%{opacity:0} 100%{opacity:0}
+}
+.vn.hit{animation:vnshake .52s cubic-bezier(.36,.07,.19,.97) 1}
+@keyframes vnshake{
+  10%,90%{transform:translate3d(-2px,0,0)}
+  20%,80%{transform:translate3d(3px,0,0)}
+  30%,50%,70%{transform:translate3d(-4px,1px,0)}
+  40%,60%{transform:translate3d(4px,-1px,0)}
+}
+.vn.hit .vn-bg{filter:saturate(.9) brightness(.82) contrast(1.06)}
+
+/* 전사 화면 얼굴은 잘리지 않게 담는다 */
+.fallen-face{background:#070D18;border:1px solid var(--line-2)}
+.fallen-face img{width:100%;height:auto;object-fit:contain;display:block}
+
+html.calm .vn.hit,html.calm .vn.hit .vn-flash{animation:none}
+
+/* 개인정보처리방침 링크 — 타이틀 화면 byline 안 */
+.byline .pp-link{color:var(--star);text-decoration:underline;text-underline-offset:2px}
+.byline .pp-link:hover{color:var(--star-2)}

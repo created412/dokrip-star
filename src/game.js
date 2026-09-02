@@ -335,6 +335,7 @@ function drawHud(){
       '<img class="rface" src="'+FACE[m.face]+'" alt="">'+esc(m.name)+'</span>';
   }).join("");
 
+  drawStrip();
   drawAside();
 
   var sb = $("sndbtn");
@@ -391,7 +392,61 @@ function scene(date, place, mood, mus){
   if(mus) snd.music(mus); else if(mood) snd.mood(mood);
   drawHud();
 }
-function show(html){ screenEl.innerHTML = '<div class="scene">'+html+'</div>'; window.scrollTo(0,0); }
+var _typer = null;
+
+function typeOut(){
+  if(_typer){ clearInterval(_typer); _typer = null; }
+  var sc = screenEl.querySelector(".scene");
+  var el = screenEl.querySelector(".vn-say");
+  if(!sc || !el) return;
+  var full = el.textContent;
+  if(document.documentElement.classList.contains("calm") || full.length < 2) return;
+
+  sc.classList.add("typing");
+  var pn = screenEl.querySelector(".vn-scroll");
+  if(pn) pn.scrollTop = 0;
+  el.textContent = "";
+  var i = 0;
+
+  function done(){
+    if(_typer){ clearInterval(_typer); _typer = null; }
+    el.textContent = full;
+    sc.classList.remove("typing");
+  }
+  _typer = setInterval(function(){
+    i += 1;
+    el.textContent = full.slice(0, i);
+    if(i >= full.length) done();
+  }, 24);
+
+  var vn = screenEl.querySelector(".vn");
+  if(vn) vn.addEventListener("click", function(){ done(); });
+  sc.addEventListener("keydown", function(e){
+    if(e.key === " " || e.key === "Enter") done();
+  });
+}
+
+/* 무대가 아닌 화면도 지금 장면의 그림 위에 놓인다 */
+function drawBackdrop(){
+  var el = $("stagebg"); if(!el) return;
+  var sc = screenEl.querySelector(".scene");
+  if(!sc || sc.querySelector(".vn") || sc.querySelector(".camp") || sc.querySelector(".keyart-full")){
+    el.style.opacity = 0; return;
+  }
+  var img = sc.querySelector(".plate .scene-img");
+  var src = img ? img.getAttribute("src") : STAGE_BG;
+  if(!src){ el.style.opacity = 0; return; }
+  el.style.backgroundImage = 'url("' + src + '")';
+  el.style.opacity = 1;
+}
+
+function show(html){
+  screenEl.innerHTML = '<div class="scene">'+html+'</div>';
+  window.scrollTo(0,0);
+  mountStage();
+  drawBackdrop();
+  typeOut();
+}
 function actbar(html, hint){ return '<div class="actbar">'+html+(hint?'<p class="hintline">'+esc(hint)+'</p>':'')+'</div>'; }
 function steps(total, at){
   var o = '<div class="steps">';
@@ -448,29 +503,120 @@ function bindDocs(){
   });
 }
 
-/* ===================== 도입 ===================== */
+/* ===================== 시작 화면 — 키아트 ===================== */
+
+var TITLE = "__SCTITLE__";
+
+/* 그림에 그려진 차림표 위에 실제 단추를 겹친다 (그림 기준 백분율) */
+var MENU = [
+  { id:"start", label:"게임 시작", top:76.0, h:7.2 },
+  { id:"opt",   label:"설정",     top:83.2, h:6.4 },
+  { id:"quit",  label:"종료",     top:89.3, h:6.4 }
+];
 
 function scrTitle(){
   $("board").hidden = true; SIM = false;
   paintSky("night");
+  snd.music && snd.mood && snd.mood("night");
   show(
-    '<div class="title-screen"><span class="crest">★</span><span class="proto">설계 시안</span>' +
-    '<h1>독립군의 별</h1>' +
-    '<p class="tagline">1920년 만주. 당신이 지키는 것은<br>점수가 아니라 이름이다.</p>' +
-    '<div class="btns"><button class="btn" type="button" id="go">시작하기</button></div>' +
-    '<p class="byline">사료·서술 근거 — 동아출판 『고등학교 한국사2』 20 · 28 · 30~33쪽<br>' +
-    '실존 인물 사진 — 퍼블릭 도메인 · 소대원 초상·장면 그림 — Higgsfield 재현 일러스트<br>' +
-    '<a class="pp-link" href="privacy.html">개인정보처리방침</a> — 이 게임은 어떤 개인정보도 수집하지 않습니다.</p></div>'
+    '<div class="keyart-full">' +
+    '<div class="keyart-blur" style="background-image:url(&quot;'+TITLE+'&quot;)"></div>' +
+    '<div class="keyart">' +
+      '<img class="keyart-img" src="'+TITLE+'" alt="독립군의 별 — 1920년대 무장 독립 투쟁">' +
+      MENU.map(function(m){
+        return '<button class="keyart-hit'+(m.id==="start"?" primary":"")+'" type="button" ' +
+          'id="k-'+m.id+'" style="top:'+m.top+'%;height:'+m.h+'%" aria-label="'+esc(m.label)+'">' +
+          '<span class="kh-glow"></span></button>';
+      }).join("") +
+    '</div>' +
+    '<div class="keyart-menu">' +
+      MENU.map(function(m){
+        return '<button class="btn'+(m.id==="start"?"":" ghost")+'" type="button" id="m-'+m.id+'">' +
+          esc(m.label)+'</button>';
+      }).join("") +
+    '</div>' +
+    '<p class="byline">사료·서술 근거 — 동아출판 『고등학교 한국사2』 20 · 28 · 30~33쪽 · ' +
+    '실존 인물 사진 — 퍼블릭 도메인 · 장면과 인물 그림 — 재현 일러스트<br>' +
+    '<a class="pp-link" href="privacy.html">개인정보처리방침</a> — 이 게임은 어떤 개인정보도 수집하지 않습니다.</p>' +
+    '</div>'
   );
-  $("go").addEventListener("click", function(){ snd.start(); newGame(); b1(); });
+
+  function on(id, fn){
+    var a = $("k-"+id), b = $("m-"+id);
+    if(a) a.addEventListener("click", fn);
+    if(b) b.addEventListener("click", fn);
+  }
+  on("start", function(){ snd.start(); newGame(); b1(); });
+  on("opt", settings);
+  on("quit", about);
 }
+
+/* ===== 설정 ===== */
+
+function settings(){
+  paintSky("night");
+  var big = document.documentElement.classList.contains("big");
+  var calm = document.documentElement.classList.contains("calm");
+  show(
+    '<p class="eyebrow">설정</p><h2>소리와 화면</h2>' +
+    '<div class="setlist">' +
+      '<button class="setrow" type="button" id="s-snd"><span class="sr-n">소리</span>' +
+        '<span class="sr-v">'+(snd.isOn()?"켬":"끔")+'</span></button>' +
+      '<button class="setrow" type="button" id="s-big"><span class="sr-n">글자 크게</span>' +
+        '<span class="sr-v">'+(big?"켬":"끔")+'</span></button>' +
+      '<button class="setrow" type="button" id="s-calm"><span class="sr-n">움직임 줄이기</span>' +
+        '<span class="sr-v">'+(calm?"켬":"끔")+'</span></button>' +
+    '</div>' +
+    '<p class="hintline">교실 화면이 크면 「글자 크게」를, 화면 흔들림이 부담되면 「움직임 줄이기」를 켜세요.</p>' +
+    actbar('<button class="btn" type="button" id="back">돌아가기</button>')
+  );
+  $("s-snd").addEventListener("click", function(){ snd.setOn(!snd.isOn()); settings(); });
+  $("s-big").addEventListener("click", function(){
+    document.documentElement.classList.toggle("big"); settings();
+  });
+  $("s-calm").addEventListener("click", function(){
+    document.documentElement.classList.toggle("calm"); settings();
+  });
+  $("back").addEventListener("click", scrTitle);
+}
+
+/* ===== 종료 — 이 게임에 대하여 ===== */
+
+function about(){
+  paintSky("deep");
+  show(
+    '<p class="eyebrow">이 게임에 대하여</p><h2>독립군의 별</h2>' +
+    '<p class="narr">1920년 만주. 봉오동에서 자유시까지, 한 소대를 데리고 갑니다. ' +
+      '한 판에 40~50분 걸립니다.</p>' +
+    '<div class="wit">' +
+      '<div class="w-row"><span class="w-h">바뀌지 않는 것</span>' +
+        '<p>홍범도·안무·김좌진·이회영·남자현·지청천 — 여섯 실존 인물의 최후는 ' +
+        '당신이 무엇을 하든 바뀌지 않습니다. 실제로 있었던 일이기 때문입니다.</p></div>' +
+      '<div class="w-row"><span class="w-h">바뀌는 것</span>' +
+        '<p>박두칠·최봉근·오상길·정만수·김순덕·윤재호 — 내 소대 여섯은 <em>지어낸 이름</em>입니다. ' +
+        '봉오동과 청산리에서 죽은 대다수는 오늘날 이름을 알 수 없기 때문입니다.</p></div>' +
+      '<div class="w-row"><span class="w-h">근거</span>' +
+        '<p>동아출판 『고등학교 한국사2』 20 · 28 · 30~33쪽. ' +
+        '교과서 밖 자료는 화면마다 「교과서 밖 자료」로 표시했습니다. ' +
+        '숫자는 기록마다 다르며, 게임은 그 차이를 그대로 보여 줍니다.</p></div>' +
+      '<div class="w-row"><span class="w-h">그림과 소리</span>' +
+        '<p>실존 인물 사진은 퍼블릭 도메인입니다. 장면·인물·선택지 그림은 <em>재현 일러스트</em>이며 ' +
+        '사진이 아닙니다. 효과음은 합성음입니다.</p></div>' +
+    '</div>' +
+    '<p class="hintline">창을 닫으면 종료됩니다. 진행 상황은 저장되지 않습니다.</p>' +
+    actbar('<button class="btn" type="button" id="back">처음 화면으로</button>')
+  );
+  $("back").addEventListener("click", scrTitle);
+}
+
+/* ===================== 도입 ===================== */
 
 function b1(){
   scene("1920. 6. 4 · 밤", "두만강 북안", "night");
   snd.water();
+  setBg(SC[1]);
   show(
-    artPanorama() +
-    '<div class="beat"><p class="narr fade-1">강을 건넜다. 물이 허리까지 왔고, 신발은 벗어 손에 들었다.</p></div>' +
+    narrate('강을 건넜다. 물이 허리까지 왔고, 신발은 벗어 손에 들었다.', SC[1]) +
     actbar('<button class="btn" type="button" id="next">마을로 들어간다</button>')
   );
   $("next").addEventListener("click", b2);
@@ -478,11 +624,10 @@ function b1(){
 
 function b2(){
   scene("1920. 6. 4 · 밤", "북간도 · 어느 마을", "night");
+  setBg(SC[2]);
   show(
-    artFire() +
-    '<div class="beat"><p class="narr fade-1">불 앞에 한 사람이 앉아 있다. 마을 사람들은 그를 ' +
-      '<em>산에서 온 사람</em>이라고만 부른다. 아무도 이름을 대지 않는다.</p>' +
-    '<p class="narr fade-2">이름을 대면 그 이름이 곧 수배가 되기 때문이다.</p></div>' +
+    narrate('불 앞에 한 사람이 앉아 있다. 마을 사람들은 그를 <em>산에서 온 사람</em>이라고만 부른다. ' +
+            '아무도 이름을 대지 않는다. 이름을 대면 그 이름이 곧 수배가 되기 때문이다.', SC[2]) +
     actbar('<button class="btn" type="button" id="next">불 앞에 앉는다</button>')
   );
   $("next").addEventListener("click", person);
@@ -528,12 +673,12 @@ function nameAsk(tries){
   var f = FIGURES[0];
   scene("1920. 6. 4 · 밤", "북간도 · 어느 마을", "night");
   show(
-    talkCard(HONG_NPC, HONG_SAID[Math.min(tries, HONG_SAID.length-1)]) +
-    '<div class="nb-in">' +
-      '<input id="nm" class="nb-input" type="text" autocomplete="off" maxlength="12" placeholder="이름을 적으시오">' +
-      '<button class="btn" type="button" id="ok">적는다</button>' +
-    '</div>' +
-    (tries ? '<p class="nb-note">틀린 횟수 '+tries+' / 3</p>' : '') +
+    stage(HONG_NPC, HONG_SAID[Math.min(tries, HONG_SAID.length-1)], null, SC[2],
+      '<div class="nb-in">' +
+        '<input id="nm" class="nb-input" type="text" autocomplete="off" maxlength="12" placeholder="이름을 적으시오">' +
+        '<button class="btn" type="button" id="ok">적는다</button>' +
+      '</div>' +
+      (tries ? '<p class="nb-note">틀린 횟수 '+tries+' / 3 · 기록을 다시 보려면 아래를 펼치세요</p>' : '')) +
     '<details class="ev-src"'+(tries?' open':'')+'><summary>그를 두고 남아 있는 기록 다시 보기</summary>' +
       '<div class="docs">'+f.sources.map(docCard).join("")+'</div></details>' +
     actbar('<button class="btn ghost" type="button" id="back">불을 바라본다</button>',
@@ -571,7 +716,7 @@ function nameGot(f, tries){
   show(
     talkCard(HONG_NPC, ok
       ? "“…그래. 오래 못 들은 이름일세. 여기서는 아무도 부르지 않으니.”"
-      : "“모르는 것이 흠은 아닐세. 나를 아는 사람이 많으면 나부터 위험해지니.”") +
+      : "“모르는 것이 흠은 아닐세. 나를 아는 사람이 많으면 나부터 위험해지니.”", SC[2]) +
     '<div class="note-box'+(ok?" good":" warn")+'"><h3>'+esc(BOOK)+' · 30쪽 인물 소개 ❶</h3>' +
       '<p><strong>홍범도</strong> — 포수 출신으로 의병으로 활약하였다. 국권 피탈 이후 독립군을 이끌고 ' +
       '국내 진공 작전을 펼쳤으며 봉오동 전투, 청산리 대첩 등에서 활약하였다.</p></div>' +
@@ -645,16 +790,10 @@ function camp(msg){
   if(!left) $("on").addEventListener("click", escortPick);
 }
 
+function campBg(){ return S.done >= 2 ? CAMP.night : CAMP.day; }
+
 function faceCard(m, said, sub){
-  return '<div class="dlg">' +
-    '<span class="dlg-face"><img src="'+FACE[m.face]+'" alt="'+esc(m.name)+'"></span>' +
-    '<div class="dlg-body">' +
-      '<p class="dlg-who">'+esc(m.name)+
-        '<span class="dlg-meta">'+esc(m.origin)+' · '+m.age+'세 · '+esc(m.skill)+'</span></p>' +
-      '<p class="dlg-said">'+esc(said)+'</p>' +
-      '<p class="dlg-line">'+esc(sub || m.line)+'</p>' +
-    '</div>' +
-  '</div>';
+  return stage(m, said, esc(sub || m.line), campBg());
 }
 
 function talk(idx){
@@ -766,9 +905,9 @@ function escortPick(){
       show(
         faceCard(m, "“옆에 있겠습니다. 뒤는 제가 봅니다.”") +
         '<p class="narr">그 뒤로 화면 맨 위에 <em>그의 한 마디</em>가 따라다닌다. 그가 없어지면 그 자리도 비워진다.</p>' +
-        actbar('<button class="btn" type="button" id="next">명부를 펼친다</button>')
+        actbar('<button class="btn" type="button" id="next">장군이 부른다</button>')
       );
-      $("next").addEventListener("click", musterAll);
+      $("next").addEventListener("click", function(){ askQ("q1", ep03, SC[17]); });
     });
   });
 }
@@ -790,26 +929,95 @@ function musterAll(){
     '<p class="cite">'+esc(BOOK)+' · 20 · 30 · 33쪽. 안무의 사진은 전하지 않는다.</p>' +
     actbar('<button class="btn" type="button" id="next">장군이 묻는다</button>')
   );
-  $("next").addEventListener("click", function(){ askQ("q1", ep03); });
+  $("next").addEventListener("click", function(){ askQ("q1", ep03, SC[17]); });
 }
 
 
-/* ===================== 묻는 사람이 있는 문항 ===================== */
+/* ===================== 무대 — 화면을 가득 채운다 =====================
+   배경과 인물이 화면 전체를 쓰고, 대사창이 아래를 덮는다.
+   선택지·근거·단추는 모두 대사창 안으로 들어간다 (mountStage 가 옮긴다).
 
-/* 물어볼 사람을 고른다 — 원하는 사람이 죽었으면 곁에 둔 사람, 그마저 없으면 살아 있는 사람 */
-function askerOf(name){
-  var m = memberBy(name);
-  if(m && m.alive) return m;
-  if(S.escort && S.escort.alive) return S.escort;
-  return alive()[0] || HONG_NPC;
+   지어낸 소대원은 그림으로 선다. 실존 인물은 사진으로 선다 — 액자째.
+*/
+
+var SPRITE = {
+  s1:"__SP_S1__", s2:"__SP_S2__", s3:"__SP_S3__",
+  s4:"__SP_S4__", s5:"__SP_S5__", s6:"__SP_S6__"
+};
+
+var STAGE_BG = null;
+function setBg(url){ STAGE_BG = url || null; }
+
+function stage(who, said, lead, bg, extra, over){
+  var src = bg || STAGE_BG || SC[2];
+  var sp = who && SPRITE[who.face];
+  var real = !sp && who && FACE[who.face];
+
+  return '<div class="vn' + (sp ? " has-actor" : (real ? " has-photo" : "")) + '">' +
+      '<img class="vn-bg" src="'+src+'" alt="">' +
+      '<span class="vn-veil"></span>' +
+      '<span class="vn-flash" aria-hidden="true"></span>' +
+      (sp
+        ? '<img class="vn-actor" src="'+sp+'" alt="'+esc(who.name)+'">'
+        : (real
+          ? '<span class="vn-photo"><img src="'+FACE[who.face]+'" alt="'+esc(who.name)+'">' +
+            '<span class="vn-photo-tag">사진</span></span>'
+          : '')) +
+      (over ? '<div class="vn-over">'+over+'</div>' : '') +
+      '<div class="vn-panel">' +
+        (who ? '<span class="vn-name">'+esc(who.name) +
+          (who.origin ? '<em>'+esc(who.origin)+' · '+who.age+'세 · '+esc(who.skill)+'</em>' : '') +
+          '</span>' : '') +
+        '<div class="vn-scroll"><div class="vn-text">' +
+          (lead ? '<p class="vn-lead">'+lead+'</p>' : '') +
+          (said ? '<p class="vn-say">'+esc(said)+'</p>' : '') +
+          (extra || '') +
+        '</div></div>' +
+        (said ? '<span class="vn-tip" aria-hidden="true"></span>' : '') +
+      '</div>' +
+  '</div>';
 }
 
-function talkCard(m, said){
-  return '<div class="talk"><span class="talk-face"><img src="'+FACE[m.face]+'" alt=""></span>' +
-    '<div class="talk-body"><p class="talk-who">'+esc(m.name)+
-    '<span class="talk-meta">'+esc(m.origin)+' · '+m.age+'세 · '+esc(m.skill)+'</span></p>' +
-    '<p class="talk-said">'+esc(said)+'</p></div></div>';
+/* 무대 뒤에 붙어 나온 것들(선택지·근거·단추)을 대사창 안으로 옮긴다 */
+function mountStage(){
+  var sc = screenEl.querySelector(".scene");
+  if(!sc) return false;
+  document.body.classList.toggle("titlescreen", !!sc.querySelector(".keyart-full"));
+  var vn = sc.querySelector(".vn");
+  if(!vn){
+    document.body.classList.remove("staged");
+    document.body.classList.toggle("campstage", !!sc.querySelector(".camp"));
+    return false;
+  }
+  document.body.classList.remove("campstage");
+
+  var panel = vn.querySelector(".vn-scroll") || vn.querySelector(".vn-panel");
+  var node = vn.nextSibling;
+  while(node){
+    var next = node.nextSibling;
+    panel.appendChild(node);
+    node = next;
+  }
+  document.body.classList.add("staged");
+  fitStage();
+  return true;
 }
+
+/* 대사창 높이를 재어 인물과 액자가 가려지지 않게 한다 */
+function fitStage(){
+  var vn = screenEl.querySelector(".vn");
+  if(!vn) return;
+  var pn = vn.querySelector(".vn-panel");
+  if(!pn) return;
+  var h = Math.round(pn.getBoundingClientRect().height);
+  vn.style.setProperty("--panel-h", h + "px");
+  var bd = $("board");
+  var bh = (bd && !bd.hidden) ? Math.round(bd.getBoundingClientRect().height) : 0;
+  vn.style.setProperty("--hud-h", bh + "px");
+}
+
+function narrate(lead, bg){ return stage(null, null, lead, bg); }
+function talkCard(m, said, bg){ return stage(m, said, null, bg); }
 
 function optList(opts){
   return '<div class="opts">' + opts.map(function(o,i){
@@ -821,18 +1029,25 @@ function optList(opts){
   }).join("") + '</div>';
 }
 
-function speaks(m, said, opts){
-  return talkCard(m, said) + optList(opts);
+function speaks(m, said, opts, bg, lead){
+  return stage(m, said, lead, bg) + optList(opts);
 }
 
-/* 문항을 대화 안에서 묻는다 */
-function askQ(key, next, pic){
+/* ===================== 묻는 사람이 있는 문항 ===================== */
+
+function askerOf(name){
+  var m = memberBy(name);
+  if(m && m.alive) return m;
+  if(S.escort && S.escort.alive) return S.escort;
+  return alive()[0] || HONG_NPC;
+}
+
+function askQ(key, next, bg){
   var Q = QUIZ[key];
   var who = Q.by === "hong" ? HONG_NPC : askerOf(Q.by);
   scene(null, null, null);
   show(
-    (pic || artBanner()) +
-    talkCard(who, Q.said) +
+    stage(who, Q.said, null, bg) +
     optList(Q.opts.map(function(o){ return { t:o }; })) +
     actbar('', "틀려도 진행됩니다. 기록에는 남습니다.")
   );
@@ -842,8 +1057,7 @@ function askQ(key, next, pic){
     if(ok) snd.chime(); else snd.deny();
     scene(null, null, null);
     show(
-      (pic || artBanner()) +
-      talkCard(who, ok ? Q.yes : Q.no) +
+      stage(who, ok ? Q.yes : Q.no, null, bg) +
       '<div class="note-box'+(ok?" good":" warn")+'"><h3>'+esc(BOOK)+' · '+esc(Q.cite)+'</h3>' +
       '<p><strong>'+esc(Q.opts[Q.ans])+'</strong> — '+esc(Q.why)+'</p></div>' +
       actbar('<button class="btn" type="button" id="next">계속</button>')
@@ -858,8 +1072,8 @@ function ep03(){
   S.phase = 1;
   scene("1920. 6. 7 · 새벽 4시", "봉오동 상촌", "deep", "battle");
   show(
-    artValley() +
-    '<div class="beat"><p class="narr fade-1">마을을 비우면 골짜기 전체가 덫이 된다. 다만 집과 곡식을 두고 산으로 가라는 말을 <em>사람들이 받아들여야 한다.</em></p></div>' +
+    narrate('마을을 비우면 골짜기 전체가 덫이 된다. 다만 집과 곡식을 두고 산으로 가라는 말을 ' +
+            '<em>사람들이 받아들여야 한다.</em>', SC[4]) +
     optList([
       {t:"마을을 비우고 능선에 매복한다", s:"신망 "+S.trust+" / 10 — 4 이상이어야 주민이 따라 준다.", pic:21},
       {t:"골짜기 밖에서 정면으로 맞선다", s:"지형의 이점을 포기한다. 대신 마을은 건드리지 않는다.", pic:20}
@@ -913,35 +1127,39 @@ function deploy(where, slot, good, done){
 /* ===================== 전황판 ===================== */
 
 function startField(name, field, pos, when){
-  S.b = { name:name, field:field, pos:pos, time:when, shots:0, log:[] };
+  S.b = { name:name, field:field, pos:pos, time:when, shots:0, log:[], on:true };
+}
+function endField(){ if(S.b) S.b.on = false; drawHud(); }
+
+/* 전황은 상황 띠 한 줄로 낸다. 인원은 위 명단이 이미 보여 주므로 넣지 않는다 */
+function drawStrip(){
+  var el = $("bstrip"); if(!el) return;
+  var b = S && S.b;
+  if(!b || !b.on){ el.hidden = true; el.innerHTML = ""; return; }
+  el.hidden = false;
+  el.innerHTML =
+    '<span class="bs-l">전황</span>' +
+    '<span class="bs-time">'+esc(b.time)+'</span>' +
+    '<span class="bf-track">' + b.field.map(function(n,i){
+      return '<span class="bf-node'+(i===b.pos?" on":(i<b.pos?" past":""))+'"><i></i>'+esc(n)+'</span>';
+    }).join("") + '</span>' +
+    '<span class="bf-shots" aria-label="총성">' +
+      [0,1,2,3,4,5,6,7].map(function(i){
+        return '<i class="'+(i < b.shots ? "on" : "")+'"></i>';
+      }).join("") + '</span>' +
+    (b.log.length ? '<span class="bs-log">'+esc(b.log[b.log.length-1].s)+'</span>' : '');
 }
 
-function battleBar(){
-  var b = S.b; if(!b) return "";
-  return '<div class="bfield">' +
-    '<div class="bf-row"><span class="bf-l">시각</span>' +
-      '<span class="bf-time-now">'+esc(b.time)+'</span>' +
-      '<span class="bf-shots" aria-label="총성">' +
-        [0,1,2,3,4,5,6,7].map(function(i){
-          return '<i class="'+(i < b.shots ? "on" : "")+'"></i>';
-        }).join("") + '</span></div>' +
-    '<div class="bf-row"><span class="bf-l">일본군</span>' +
-      '<span class="bf-track">' + b.field.map(function(n,i){
-        return '<span class="bf-node'+(i===b.pos?" on":(i<b.pos?" past":""))+'"><i></i>'+esc(n)+'</span>';
-      }).join("") + '</span></div>' +
-    '<div class="bf-row"><span class="bf-l">우리</span>' +
-      '<span class="bf-men">' + S.squad.map(function(m){
-        return '<span class="bf-man'+(m.alive?"":" out")+(m.front?" front":"")+'">' +
-          '<img src="'+FACE[m.face]+'" alt="'+esc(m.name)+'"></span>';
-      }).join("") + '<span class="bf-n">'+alive().length+' / '+S.squad.length+'</span></span></div>' +
-    (b.log.length
-      ? '<ol class="bf-log">' + b.log.map(function(l,i){
-          return '<li'+(i===b.log.length-1?' class="new"':'')+'>' +
-            '<span class="bf-t">'+esc(l.t)+'</span>'+esc(l.s)+'</li>';
-        }).join("") + '</ol>'
-      : '') +
-  '</div>';
+/* 결과 화면에서 되짚는 전투 기록 */
+function battleLog(){
+  var b = S.b;
+  if(!b || !b.log.length) return "";
+  return '<ol class="bf-log tall">' + b.log.map(function(l){
+      return '<li><span class="bf-t">'+esc(l.t)+'</span>'+esc(l.s)+'</li>';
+    }).join("") + '</ol>';
 }
+
+function battleBar(){ return ""; }
 
 /* 같은 그림 위에 연기와 섬광이 박자마다 짙어진다 */
 function artFight(k, caps, pics){
@@ -954,8 +1172,13 @@ function artFight(k, caps, pics){
 
 function bang(shots, spread){
   snd.volley(shots, spread);
-  var sc = screenEl.querySelector(".scene");
-  if(sc){ sc.classList.add("hit"); setTimeout(function(){ sc.classList.remove("hit"); }, 620); }
+  if(document.documentElement.classList.contains("calm")) return;
+  var el = screenEl.querySelector(".vn") || screenEl.querySelector(".scene");
+  if(!el) return;
+  el.classList.remove("hit");
+  void el.offsetWidth;
+  el.classList.add("hit");
+  setTimeout(function(){ el.classList.remove("hit"); }, 640);
 }
 
 /* ===================== 봉오동 — 세 박자 ===================== */
@@ -1021,15 +1244,13 @@ function fight(step){
   function render(o){
     show(
       '<div class="stage-top">'+steps(3,step)+'<span class="count">봉오동 · 박자 '+(step+1)+' / 3</span></div>' +
-      artFight(step, BO_CAPS, [4,13,14]) +
-      battleBar() +
       (o
-        ? '<div class="beat-out"><p class="bo-pick">— '+esc(o.t)+'</p>' +
-            '<p class="narr">'+esc(o.out)+'</p></div>' +
+        ? stage(who, null, '<strong>— '+esc(o.t)+'</strong> ' + esc(o.out),
+                SC[[4,13,14][step]]) +
           actbar('<button class="btn" type="button" id="next">' +
             (step<2 ? "다음 박자" : "총성이 멎는다") + '</button>')
-        : '<p class="narr">'+esc(B.lead)+'</p>' +
-          speaks(who, B.say, B.opts) +
+        : stage(who, B.say, esc(B.lead), SC[[4,13,14][step]]) +
+          optList(B.opts) +
           actbar('', B.hint || "선택이 사상자 수를 바꿉니다."))
     );
     if(o) $("next").addEventListener("click", function(){
@@ -1103,15 +1324,13 @@ function chungsan(step){
   function render(o){
     show(
       '<div class="stage-top">'+steps(2,step)+'<span class="count">청산리 · 박자 '+(step+1)+' / 2</span></div>' +
-      artFight(step, CH_CAPS, [5,13]) +
-      battleBar() +
       (o
-        ? '<div class="beat-out"><p class="bo-pick">— '+esc(o.t)+'</p>' +
-            '<p class="narr">'+esc(o.out)+'</p></div>' +
+        ? stage(who, null, '<strong>— '+esc(o.t)+'</strong> ' + esc(o.out),
+                SC[[5,13][step]]) +
           actbar('<button class="btn" type="button" id="next">' +
             (step<1 ? "이튿날" : "엿새가 지난다") + '</button>')
-        : '<p class="narr">'+esc(B.lead)+'</p>' +
-          speaks(who, B.say, B.opts) +
+        : stage(who, B.say, esc(B.lead), SC[[5,13][step]]) +
+          optList(B.opts) +
           actbar('', "청산리는 엿새 동안 열 몇 차례 이어졌습니다. 그 가운데 두 번입니다."))
     );
     if(o) $("next").addEventListener("click", function(){
@@ -1136,13 +1355,14 @@ function chungsan(step){
 }
 
 function chungsanResult(){
+  endField();
   var fit = S.front.filter(function(m){ return S.good.indexOf(m.skill)>=0; }).length;
   var n = clamp(1 + S.risk - (fit>=2?1:0), 0, 2);
   var dead = S.front.filter(function(m){ return m.alive; }).slice(0, n);
   scene("1920. 10. 26 · 해질녘", "청산리", "dusk");
   show(
     artChungsan() + '<p class="eyebrow">1920년 10월 21 ~ 26일 · 청산리 대첩</p><h2>엿새가 지났다</h2>' +
-    battleBar() +
+    battleLog() +
     '<p class="narr">또 이겼다. 부대는 더 작아졌다. ' +
       (S.gain >= 1 ? "골짜기마다 적이 남았다." : "잡은 만큼 놓치기도 했다.") + '</p>' +
     '<details class="ev-src"><summary>교과서 근거</summary><p>교과서 30쪽 — 김좌진의 북로 군정서와 홍범도의 대한 독립군 등 독립군 연합 부대가 청산리 일대에서 6일간 10여 차례 전투를 벌여 일본군을 크게 무찔렀다(청산리 대첩).</p></details>' +
@@ -1154,6 +1374,7 @@ function chungsanResult(){
 }
 
 function ep03Result(){
+  endField();
   var fit = S.front.filter(function(m){ return S.good.indexOf(m.skill) >= 0; }).length;
   var worked = S.ambush && S.trust >= 4;
   var n = clamp((worked?0:1) + S.risk - (fit>=2?1:0), 0, 3);
@@ -1165,7 +1386,7 @@ function ep03Result(){
   show(
     artBattle() +
     '<p class="eyebrow">1920년 6월 7일 · 봉오동 전투</p>' +
-    battleBar() +
+    battleLog() +
     '<h2>'+(n===0 ? "아무도 잃지 않았다" : (worked ? "덫이 닫혔다" : (S.ambush ? "절반의 매복" : "값비싼 승리")))+'</h2>' +
     '<p class="narr">' + (worked
       ? "빈 마을로 들어선 일본군은 사방 능선에서 사격을 받았다. 총성이 한참 이어지다 조용해졌다."
@@ -1177,7 +1398,7 @@ function ep03Result(){
     actbar('<button class="btn" type="button" id="next">'+(n?"돌아온 사람을 센다":"전열을 정비한다")+'</button>')
   );
   $("next").addEventListener("click", function(){
-    fallen(dead, "봉오동", "능선 위에서", function(){ askQ("q2", ep05); });
+    fallen(dead, "봉오동", "능선 위에서", function(){ askQ("q2", ep05, SC[14]); });
   });
 }
 
@@ -1228,9 +1449,8 @@ function ep05(){
   S.phase = 2;
   scene("1920. 10 · 낮", "청산리 일대", "day");
   show(
-    artChungsan() +
-    '<div class="beat"><p class="narr fade-1">봉오동에서 패한 일제가 <strong>훈춘 사건</strong>을 빌미로 대군을 파견했다.</p>' +
-    '<p class="callout-src fade-1">훈춘 사건 — 일제에 매수된 마적이 훈춘의 일본 영사관을 공격하고 일본인을 살해한 사건. <span class="cite-inline">'+esc(BOOK)+' · 30쪽</span></p></div>' +
+    narrate('봉오동에서 패한 일제가 <strong>훈춘 사건</strong>을 빌미로 대군을 파견했다.', SC[5]) +
+    '<p class="callout-src">훈춘 사건 — 일제에 매수된 마적이 훈춘의 일본 영사관을 공격하고 일본인을 살해한 사건. <span class="cite-inline">'+esc(BOOK)+' · 30쪽</span></p>' +
     actbar('<button class="btn" type="button" id="next">누구를 앞에 세울 것인가</button>')
   );
   $("next").addEventListener("click", function(){
@@ -1243,9 +1463,11 @@ function gando(){
   var living = alive();
   var t = living.length > 1 ? living[living.length-1] : null;
   show(
-    artGando() + '<p class="eyebrow">1920년 10월 ~ 이듬해 봄</p><h2>돌아온 값</h2>' +
+    narrate('불탄 마을의 이름이 들어온다.' +
+      (t ? ' <em>'+esc(t.origin)+'</em>. '+esc(t.name)+'의 고향이다. 그는 사흘 뒤 소대를 떠났고 돌아오지 않았다.' : ''),
+      SC[6]) +
+    '<p class="eyebrow">1920년 10월 ~ 이듬해 봄</p><h2>돌아온 값</h2>' +
     '<div class="note-box warn"><h3>교과서 31쪽</h3><p>일제는 독립군 근거지를 없애고 잇따른 패배를 보복하려 하였다. 1920년 10월 초부터 이듬해 봄까지 간도 지역의 한국인을 학살하고, 한국인 마을을 불살랐다(간도 참변).</p></div>' +
-    '<p class="narr">불탄 마을의 이름이 들어온다.' + (t ? ' <em>'+esc(t.origin)+'</em>. '+esc(t.name)+'의 고향이다. 그는 사흘 뒤 소대를 떠났고 돌아오지 않았다.' : '') + '</p>' +
     actbar('<button class="btn" type="button" id="next">겨울이 온다</button>')
   );
   $("next").addEventListener("click", function(){
@@ -1257,9 +1479,8 @@ function gando(){
 function record(){
   scene("1921. 2 · 겨울", "밀산 · 임시 숙영지", "winter");
   show(
-    artDesk() +
-    '<div class="beat"><p class="narr fade-1">지난해 일을 적어야 한다. 손에 들어온 기록 두 장이 서로 다른 말을 한다.</p>' +
-    '<p class="narr fade-2">한쪽은 적 사망 <em>157명</em>, 다른 쪽은 전사 <em>1명</em>.</p></div>' +
+    narrate('지난해 일을 적어야 한다. 손에 들어온 기록 두 장이 서로 다른 말을 한다. ' +
+            '한쪽은 적 사망 <em>157명</em>, 다른 쪽은 전사 <em>1명</em>.', SC[7]) +
     actbar('<button class="btn" type="button" id="next">첫 번째 기록</button>')
   );
   $("next").addEventListener("click", function(){ assess(0); });
@@ -1339,13 +1560,12 @@ function jayusi(){
   scene("1920. 12 · 눈", "밀산 · 국경 마을", "winter");
   var e = S.escort && S.escort.alive ? S.escort : alive()[0];
   show(
-    artMilsan() +
-    '<div class="beat"><p class="narr fade-1">간도의 마을이 탔다. 우리를 먹여 주던 곳이 없어졌다. ' +
-      '흩어져 있던 부대들이 밀산에 모여 <strong>대한 독립 군단</strong>을 만들었다.</p></div>' +
-    '<details class="ev-src"><summary>교과서 근거</summary><p>교과서 31쪽 — 간도 참변 이후 독립군은 밀산에 모여 대한 독립 군단을 조직하고, 러시아령 자유시로 이동하였다.</p></details>' +
     speaks(e, "“러시아 땅으로 간다고 들었습니다. …왜 남의 나라로 갑니까.”",
       [{t:"무기와 식량을 준다고 한다", s:"러시아 혁명 정부가 약소민족을 돕겠다고 했다. 총을 준다고 한다."},
-       {t:"여기서는 겨울을 못 넘긴다", s:"근거지가 없다. 마을이 없으면 부대도 없다."}]) +
+       {t:"여기서는 겨울을 못 넘긴다", s:"근거지가 없다. 마을이 없으면 부대도 없다."}],
+      SC[10],
+      '간도의 마을이 탔다. 우리를 먹여 주던 곳이 없어졌다. 흩어져 있던 부대들이 밀산에 모여 <strong>대한 독립 군단</strong>을 만들었다.') +
+    '<details class="ev-src"><summary>교과서 근거</summary><p>교과서 31쪽 — 간도 참변 이후 독립군은 밀산에 모여 대한 독립 군단을 조직하고, 러시아령 자유시로 이동하였다.</p></details>' +
     actbar('', "선택지가 둘이지만, 갈 수 있는 곳은 하나였습니다.")
   );
   bindOpts(function(i){
@@ -1404,13 +1624,13 @@ function jayusiDay(){
   scene("1921. 6. 28 · 낮", "자유시 · 수라셰프카", "deep", "battle");
   var e = S.escort && S.escort.alive ? S.escort : alive()[0];
   show(
-    artJayusi() +
-    '<div class="beat"><p class="narr fade-1">장갑차가 들어왔다. 러시아 적군이다. 기관총이 우리 쪽을 향한다.</p>' +
-    '<p class="narr fade-2">앞에 통역이 섰다. <em>우리말로</em> 외친다. — 무장을 해제하라. 응하지 않으면 발포한다.</p></div>' +
     speaks(e, "“…저 사람, 조선말을 합니다. 우리 쪽 사람입니다.”",
       [{t:"총을 내려놓는다", s:"명령에 따른다. 우리를 겨눈 사람도 조선 사람이다.", pic:30},
        {t:"내려놓지 않는다", s:"여기까지 들고 온 총이다. 남의 손에 넘기지 않는다.", pic:31},
-       {t:"밤을 기다렸다 빠져나간다", s:"총은 두고 사람만 뺀다. 강을 건너야 한다.", pic:32}]) +
+       {t:"밤을 기다렸다 빠져나간다", s:"총은 두고 사람만 뺀다. 강을 건너야 한다.", pic:32}],
+      SC[8],
+      '장갑차가 들어왔다. 러시아 적군이다. 기관총이 우리 쪽을 향한다. 앞에 통역이 섰다. ' +
+      '<em>우리말로</em> 외친다 — 무장을 해제하라. 응하지 않으면 발포한다.') +
     actbar('', "세 선택 가운데 사람이 죽지 않는 길은 없습니다.")
   );
   bindOpts(function(i){
@@ -1458,7 +1678,7 @@ function jayusiCount(){
     actbar('<button class="btn" type="button" id="next">이 일을 무엇이라 적을 것인가</button>')
   );
   bindDocs();
-  $("next").addEventListener("click", function(){ askQ("q3", jayusiAfter, artJayusiTown()); });
+  $("next").addEventListener("click", function(){ askQ("q3", jayusiAfter, SC[11]); });
 }
 
 /* 5) 떠난 자리 */
@@ -1678,7 +1898,10 @@ document.addEventListener("click", function(e){
   else if(!b.classList.contains("tk") && !b.classList.contains("sq")) snd.tick();
 }, true);
 
-var rz; window.addEventListener("resize", function(){ clearTimeout(rz); rz = setTimeout(function(){ paintSky(); }, 180); });
+var rz; window.addEventListener("resize", function(){
+  clearTimeout(rz);
+  rz = setTimeout(function(){ paintSky(); fitStage(); }, 180);
+});
 
 scrTitle();
 
