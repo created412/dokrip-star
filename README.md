@@ -2,7 +2,7 @@
 
 1920년 만주. 봉오동에서 자유시까지, 한 소대를 데리고 가는 고등학교 한국사 수업용 브라우저 게임.
 
-**`dokrip-star.html` 파일 하나만 열면 됩니다.** 설치도, 서버도, 인터넷 연결도 필요 없습니다. 그림·음악·글이 전부 그 한 장 안에 들어 있습니다(약 2.3MB).
+**`index.html` 파일 하나만 열면 됩니다.** 설치도, 서버도, 인터넷 연결도 필요 없습니다. 그림·음악·글이 전부 그 한 장 안에 들어 있습니다(약 2.3MB).
 
 ---
 
@@ -64,10 +64,13 @@
 python src/build.py
 ```
 
-`src/` 의 조각들과 `assets/bundle/` 의 base64 묶음을 합쳐 `dokrip-star.html` 을 다시 만듭니다. 파이썬 3만 있으면 됩니다.
+`src/` 의 조각들과 `assets/bundle/` 의 base64 묶음을 합쳐 `index.html` 을 다시 만듭니다.
+인라인 스크립트의 SHA-256 을 계산해 CSP 에 박고, 배포용 `_headers` 도 같이 굽습니다. 파이썬 3만 있으면 됩니다.
 
 ```
-dokrip-star.html          완성본 — 이것만 배포하면 됩니다
+index.html                완성본 — 이것만 배포하면 됩니다
+privacy.html              개인정보처리방침
+_headers                  보안 응답 헤더 (Cloudflare Pages·Netlify 형식, build.py 가 생성)
 src/
   game.js                 게임 흐름 전부
   art.js                  하늘 그리기, 장면 그림 자리

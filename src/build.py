@@ -5,7 +5,7 @@
 
 src/head.part + src/extra.css + src/art.js + src/audio.js + src/game.js 를 합치고,
 assets/bundle/*.json 에 들어 있는 그림·음원(base64)을 자리표시자에 끼워 넣어
-dokrip-star.html 하나를 만든다. 외부 파일 없이 그 한 장만으로 돌아간다.
+index.html 하나를 만든다. 외부 파일 없이 그 한 장만으로 돌아간다.
 
 자리표시자
     __F_*__      소대원·실존 인물 얼굴      assets/bundle/faces.json
@@ -15,6 +15,7 @@ dokrip-star.html 하나를 만든다. 외부 파일 없이 그 한 장만으로 
 """
 
 import base64
+import hashlib
 import io
 import json
 import os
@@ -25,7 +26,8 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRC = os.path.join(ROOT, 'src')
 BUNDLE = os.path.join(ROOT, 'assets', 'bundle')
 IMG = os.path.join(ROOT, 'assets', 'img')
-OUT = os.path.join(ROOT, 'dokrip-star.html')
+OUT = os.path.join(ROOT, 'index.html')
+HEADERS_OUT = os.path.join(ROOT, '_headers')
 
 
 def read(path):
@@ -78,8 +80,37 @@ def main():
         if token in js:
             sys.exit('채우지 못한 자리표시자가 남았다: %s' % token)
 
-    out = head + '<script>\n' + js + '\n</script>\n'
+    # 인라인 스크립트의 SHA-256 을 CSP 에 박는다.
+    # 'unsafe-inline' 없이도 이 스크립트 하나만 실행이 허용된다.
+    body = '\n' + js + '\n'
+    digest = base64.b64encode(hashlib.sha256(body.encode('utf-8')).digest()).decode()
+    csp = (
+        "default-src 'self'; "
+        "script-src 'self' 'sha256-%s'; "
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+        "font-src 'self' https://fonts.gstatic.com; "
+        "img-src 'self' data:; media-src 'self' data:; connect-src 'self'; "
+        "object-src 'none'; base-uri 'self'; form-action 'self'" % digest
+    )
+    head = head.replace('__CSP_META__', csp)
+    if '__CSP_META__' in head:
+        sys.exit('CSP 자리표시자를 채우지 못했다')
+
+    out = head + '<script>' + body + '</script>\n</body>\n</html>\n'
     io.open(OUT, 'w', encoding='utf-8', newline='\n').write(out)
+
+    # frame-ancestors 는 meta 에서 무시되므로 응답 헤더에만 넣는다
+    headers = '\n'.join([
+        '/*',
+        '  Content-Security-Policy: ' + csp + "; frame-ancestors 'none'",
+        '  X-Frame-Options: DENY',
+        '  X-Content-Type-Options: nosniff',
+        '  Referrer-Policy: strict-origin-when-cross-origin',
+        '  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()',
+        '  Strict-Transport-Security: max-age=31536000; includeSubDomains',
+        '',
+    ])
+    io.open(HEADERS_OUT, 'w', encoding='utf-8', newline='\n').write(headers)
     sys.stdout.write('built %s  (%.2f MB)\n' % (os.path.basename(OUT),
                                                 len(out.encode('utf-8')) / 1048576.0))
 

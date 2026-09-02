@@ -1,4 +1,17 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="__CSP_META__">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <title>독립군의 별</title>
+<meta name="description" content="1920년 만주, 봉오동에서 자유시까지 한 소대를 데리고 가는 고등학교 한국사 수업용 브라우저 게임. 선택마다 사람 이름이 걸린다.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="독립군의 별">
+<meta property="og:description" content="1920년 만주. 당신이 지키는 것은 점수가 아니라 이름이다. 고등학교 한국사 수업용 브라우저 게임.">
+<meta property="og:image" content="assets/img/camp_night.jpg">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Song+Myung&family=Nanum+Myeongjo:wght@400;700;800&family=IBM+Plex+Sans+KR:wght@200;300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -468,6 +481,8 @@ p{margin:0 0 16px;max-width:62ch}
   .fog{animation:none}
 }
 </style>
+</head>
+<body>
 
 <canvas id="sky" aria-hidden="true"></canvas>
 <div class="fog a" aria-hidden="true"></div>

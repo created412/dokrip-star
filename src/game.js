@@ -459,7 +459,8 @@ function scrTitle(){
     '<p class="tagline">1920년 만주. 당신이 지키는 것은<br>점수가 아니라 이름이다.</p>' +
     '<div class="btns"><button class="btn" type="button" id="go">시작하기</button></div>' +
     '<p class="byline">사료·서술 근거 — 동아출판 『고등학교 한국사2』 20 · 28 · 30~33쪽<br>' +
-    '실존 인물 사진 — 퍼블릭 도메인 · 소대원 초상·장면 그림 — Higgsfield 재현 일러스트</p></div>'
+    '실존 인물 사진 — 퍼블릭 도메인 · 소대원 초상·장면 그림 — Higgsfield 재현 일러스트<br>' +
+    '<a class="pp-link" href="privacy.html">개인정보처리방침</a> — 이 게임은 어떤 개인정보도 수집하지 않습니다.</p></div>'
   );
   $("go").addEventListener("click", function(){ snd.start(); newGame(); b1(); });
 }
