@@ -514,20 +514,30 @@ var MENU = [
   { id:"quit",  label:"종료",     top:89.3, h:6.4 }
 ];
 
+/* 인트로 영상 — 영상의 마지막 장면이 곧 이 화면이다. 영상이 끝나면 같은 그림,
+   같은 음악 위로 그대로 넘어간다. 파일이 없으면(한 장짜리 HTML) 단추만 빠진다. */
+var INTRO_SRC = "assets/intro720.mp4";
+var introDone = false;
+
 function scrTitle(){
   $("board").hidden = true; SIM = false;
   paintSky("night");
-  snd.music && snd.mood && snd.mood("night");
+  snd.start();
+  /* 인트로에서 흐르던 그 곡을 그대로 이어 받는다 — 「게임 시작」 전부터 끊기지 않는다 */
+  if(introDone) snd.music("title");
   show(
     '<div class="keyart-full">' +
     '<div class="keyart-blur" style="background-image:url(&quot;'+TITLE+'&quot;)"></div>' +
-    '<div class="keyart">' +
+    '<div class="keyart" id="i-stage">' +
       '<img class="keyart-img" src="'+TITLE+'" alt="독립군의 별 — 1920년대 무장 독립 투쟁">' +
       MENU.map(function(m){
         return '<button class="keyart-hit'+(m.id==="start"?" primary":"")+'" type="button" ' +
           'id="k-'+m.id+'" style="top:'+m.top+'%;height:'+m.h+'%" aria-label="'+esc(m.label)+'">' +
           '<span class="kh-glow"></span></button>';
       }).join("") +
+      (introDone ? "" :
+        '<button class="intro-play" id="i-play" type="button" aria-label="영상으로 시작">' +
+          '<span class="ip-tri"></span><span class="ip-word">영상으로 시작</span></button>') +
     '</div>' +
     '<div class="keyart-menu">' +
       MENU.map(function(m){
@@ -549,6 +559,82 @@ function scrTitle(){
   on("start", function(){ snd.start(); newGame(); b1(); });
   on("opt", settings);
   on("quit", about);
+  if(!introDone) wireIntro();
+}
+
+/* 영상을 틀거나, 다른 곳을 먼저 누르면 영상은 접고 음악만 이어 붙인다 */
+function wireIntro(){
+  var play = $("i-play"); if(!play) return;
+  play.addEventListener("click", function(e){ e.stopPropagation(); playIntro(); });
+  screenEl.addEventListener("pointerdown", function h(e){
+    var t = e.target;
+    if(t.closest && t.closest("#i-play")) return;
+    screenEl.removeEventListener("pointerdown", h);
+    introDone = true;
+    if(play.parentNode) play.parentNode.removeChild(play);
+    /* 게임을 바로 시작하는 길이면 음악은 그쪽에 맡긴다 */
+    if(!(t.closest && t.closest("#k-start, #m-start"))){ snd.start(); snd.music("title"); }
+  });
+}
+
+function playIntro(){
+  snd.start();
+  var stage = $("i-stage"); if(!stage) return;
+  var v = document.createElement("video");
+  v.className = "keyart-img intro-video";
+  v.setAttribute("playsinline", ""); v.playsInline = true;
+  v.preload = "auto"; v.src = INTRO_SRC;
+  stage.appendChild(v);
+  document.body.classList.add("introplaying");
+
+  var skip = document.createElement("button");
+  skip.className = "intro-skip"; skip.type = "button"; skip.textContent = "건너뛰기";
+  stage.parentNode.appendChild(skip);
+
+  var ended = false;
+
+  function drop(){
+    try { v.pause(); v.removeAttribute("src"); v.load(); } catch(e){}
+    if(v.parentNode) v.parentNode.removeChild(v);
+  }
+  function unwind(){                  /* 재생이 막히면 아무 일 없던 듯 되돌린다 */
+    if(ended) return; ended = true;
+    document.body.classList.remove("introplaying");
+    if(skip.parentNode) skip.parentNode.removeChild(skip);
+    drop();
+  }
+  function finish(){
+    /* 영상의 마지막 프레임 위로 진짜 시작 화면을 깔고, 영상만 살짝 지운다.
+       그림도 음악도 끊기는 자리가 없다. */
+    if(ended) return; ended = true;
+    var r = v.getBoundingClientRect();
+    document.body.appendChild(v);     /* 화면을 다시 그려도 이 프레임은 남는다 */
+    v.style.cssText = "position:fixed;left:"+r.left+"px;top:"+r.top+"px;" +
+      "width:"+r.width+"px;height:"+r.height+"px;z-index:80;pointer-events:none;" +
+      "transition:opacity .35s ease";
+    document.body.classList.remove("introplaying");
+    if(skip.parentNode) skip.parentNode.removeChild(skip);
+    introDone = true;
+    scrTitle();
+    snd.music("title");
+    requestAnimationFrame(function(){ v.style.opacity = "0"; });
+    setTimeout(drop, 420);
+  }
+  skip.addEventListener("click", finish);
+
+  /* 끝나기 직전에 게임 음악을 겹쳐 켜고 영상 소리를 죽인다 — 이음매가 들리지 않는다 */
+  v.addEventListener("timeupdate", function(){
+    if(ended || !v.duration) return;
+    var left = v.duration - v.currentTime;
+    if(left <= 0.45){
+      snd.music("title", 0.45);
+      try { v.volume = Math.max(0, left / 0.45); } catch(e){}
+    }
+  });
+  v.addEventListener("ended", finish);
+  v.addEventListener("error", finish);
+  var pr = v.play();
+  if(pr && pr.catch) pr.catch(function(){ unwind(); });
 }
 
 /* ===== 설정 ===== */
@@ -1940,6 +2026,11 @@ modeApply();
 var rz; window.addEventListener("resize", function(){
   clearTimeout(rz);
   rz = setTimeout(function(){ modeApply(); paintSky(); fitStage(); }, 180);
+});
+
+/* 첫 손길에 소리를 연다 — 브라우저는 사용자가 만지기 전에는 소리를 내주지 않는다 */
+["pointerdown","keydown","touchstart"].forEach(function(ev){
+  document.addEventListener(ev, function(){ snd.start(); }, { once:true, passive:true });
 });
 
 scrTitle();

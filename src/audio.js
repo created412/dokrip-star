@@ -5,7 +5,9 @@
 
 var BGM_SRC = {
   night:"__BGM_NIGHT__", day:"__BGM_DAY__", battle:"__BGM_BATTLE__",
-  winter:"__BGM_WINTER__", ledger:"__BGM_LEDGER__"
+  winter:"__BGM_WINTER__", ledger:"__BGM_LEDGER__",
+  /* 시작 화면 — 인트로 영상에 깔린 그 사극 스코어를, 영상이 끝난 그 마디부터 이어 받는다 */
+  title:"__BGM_TITLE__"
 };
 
 /* 하늘의 분위기 → 어느 곡을 틀 것인가 */
@@ -91,7 +93,7 @@ var snd = (function(){
     music(key);
   }
 
-  function music(key){
+  function music(key, fade){
     var A = ctx(); if(!A || !started) return;
     if(curKey === key) return;
     curKey = key;
@@ -102,7 +104,7 @@ var snd = (function(){
       setTimeout(function(){ try { old.src.stop(); } catch(e){} }, 2200);
       playing = null;
     }
-    if(buffers[key]) spin(key, 1.4);
+    if(buffers[key]) spin(key, fade || 1.4);
   }
 
   /* --- 효과음(합성) --- */
