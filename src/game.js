@@ -566,8 +566,12 @@ function settings(){
         '<span class="sr-v">'+(big?"켬":"끔")+'</span></button>' +
       '<button class="setrow" type="button" id="s-calm"><span class="sr-n">움직임 줄이기</span>' +
         '<span class="sr-v">'+(calm?"켬":"끔")+'</span></button>' +
+      '<button class="setrow" type="button" id="s-mode"><span class="sr-n">화면 모드</span>' +
+        '<span class="sr-v">'+modeLabel()+'</span></button>' +
     '</div>' +
-    '<p class="hintline">교실 화면이 크면 「글자 크게」를, 화면 흔들림이 부담되면 「움직임 줄이기」를 켜세요.</p>' +
+    '<p class="hintline">휴대폰에서 버튼이 화면 밖으로 밀리면 「화면 모드」를 <b>모바일</b>로 두세요. ' +
+    '진행 버튼이 화면 아래에 붙어 세로로도 편하게 눌립니다.<br>' +
+    '교실 화면이 크면 「글자 크게」를, 화면 흔들림이 부담되면 「움직임 줄이기」를 켜세요.</p>' +
     actbar('<button class="btn" type="button" id="back">돌아가기</button>')
   );
   $("s-snd").addEventListener("click", function(){ snd.setOn(!snd.isOn()); settings(); });
@@ -576,6 +580,11 @@ function settings(){
   });
   $("s-calm").addEventListener("click", function(){
     document.documentElement.classList.toggle("calm"); settings();
+  });
+  $("s-mode").addEventListener("click", function(){
+    var m = modeGet();
+    modeSet(m === "auto" ? "mobile" : (m === "mobile" ? "wide" : "auto"));
+    settings();
   });
   $("back").addEventListener("click", scrTitle);
 }
@@ -1898,9 +1907,39 @@ document.addEventListener("click", function(e){
   else if(!b.classList.contains("tk") && !b.classList.contains("sq")) snd.tick();
 }, true);
 
+/* ============ 화면 모드 ============
+   모바일 세로에서 진행 버튼이 화면 밖으로 밀려, 학생이 "터치가 안 된다"고
+   느끼고 가로로 돌리던 문제를 없앤다. 모바일 모드는 진행 버튼을 화면
+   아래에 고정하고 그림을 낮춰 한 화면에 담는다. */
+var MODEKEY = "dgb-mode";
+function modeGet(){
+  try { return localStorage.getItem(MODEKEY) || "auto"; } catch(e){ return "auto"; }
+}
+function modeIsMobile(){
+  var m = modeGet();
+  if(m === "mobile") return true;
+  if(m === "wide") return false;
+  return Math.min(innerWidth, innerHeight) <= 820 &&
+         (("ontouchstart" in window) || navigator.maxTouchPoints > 0);
+}
+function modeApply(){
+  var mob = modeIsMobile();
+  document.documentElement.classList.toggle("m-mobile", mob);
+  document.documentElement.classList.toggle("m-wide", !mob);
+}
+function modeSet(v){
+  try { localStorage.setItem(MODEKEY, v); } catch(e){}
+  modeApply();
+}
+function modeLabel(){
+  var m = modeGet();
+  return m === "mobile" ? "모바일" : (m === "wide" ? "태블릿·PC" : "자동");
+}
+modeApply();
+
 var rz; window.addEventListener("resize", function(){
   clearTimeout(rz);
-  rz = setTimeout(function(){ paintSky(); fitStage(); }, 180);
+  rz = setTimeout(function(){ modeApply(); paintSky(); fitStage(); }, 180);
 });
 
 scrTitle();
