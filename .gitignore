@@ -5,3 +5,8 @@ __pycache__/
 dist/
 .wrangler/
 .dorms-check/private/
+
+# 큰 홍보 영상 원본은 저장소에 두지 않는다 — GitHub 가 HTTP 408 로 끊는다.
+# 1080p 원본은 유튜브에, 세로판은 인스타에 올리고, 저장소에는 47MB 경량본만 둔다.
+press/독립군의별-사극-16x9.mp4
+press/독립군의별-사극-인스타-4x5.mp4
