@@ -2021,8 +2021,12 @@ function modeIsMobile(){
   var m = modeGet();
   if(m === "mobile") return true;
   if(m === "wide") return false;
-  return Math.min(innerWidth, innerHeight) <= 820 &&
-         (("ontouchstart" in window) || navigator.maxTouchPoints > 0);
+  /* 터치가 되는 노트북·일체형 PC 도 maxTouchPoints 는 10 이다. 그것만 보면
+     1440x731 짜리 교실 화면이 휴대폰으로 잡혀 인물 액자가 잘리고 주둔지가
+     화면 밖으로 밀렸다. 주된 입력 장치가 손가락인지(pointer: coarse)를 묻고,
+     화면도 실제로 좁을 때만 모바일로 본다. */
+  var coarse = !!(window.matchMedia && window.matchMedia("(pointer: coarse)").matches);
+  return coarse && (innerWidth <= 820 || innerHeight <= 560);
 }
 function modeApply(){
   var mob = modeIsMobile();

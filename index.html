@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-EL/Zm0tCDBYnRj/GazTIIQUw2ZGs9FgeaZ4ZzxKgoXE='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; media-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-i8pUUNwBb1tjkyuNu9nmOw7OfOaa0JP47b8LhaClK5M='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; media-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <title>독립군의 별</title>
 <meta name="description" content="1920년 만주, 봉오동에서 자유시까지 한 소대를 데리고 가는 고등학교 한국사 수업용 브라우저 게임. 선택마다 사람 이름이 걸린다.">
@@ -5340,8 +5340,12 @@ function modeIsMobile(){
   var m = modeGet();
   if(m === "mobile") return true;
   if(m === "wide") return false;
-  return Math.min(innerWidth, innerHeight) <= 820 &&
-         (("ontouchstart" in window) || navigator.maxTouchPoints > 0);
+  /* 터치가 되는 노트북·일체형 PC 도 maxTouchPoints 는 10 이다. 그것만 보면
+     1440x731 짜리 교실 화면이 휴대폰으로 잡혀 인물 액자가 잘리고 주둔지가
+     화면 밖으로 밀렸다. 주된 입력 장치가 손가락인지(pointer: coarse)를 묻고,
+     화면도 실제로 좁을 때만 모바일로 본다. */
+  var coarse = !!(window.matchMedia && window.matchMedia("(pointer: coarse)").matches);
+  return coarse && (innerWidth <= 820 || innerHeight <= 560);
 }
 function modeApply(){
   var mob = modeIsMobile();
