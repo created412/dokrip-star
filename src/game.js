@@ -518,6 +518,7 @@ var MENU = [
    같은 음악 위로 그대로 넘어간다. 파일이 없으면(한 장짜리 HTML) 단추만 빠진다. */
 var INTRO_SRC = "assets/intro720.mp4";
 var introDone = false;
+var introState = "idle";        /* idle → playing → done */
 
 function scrTitle(){
   $("board").hidden = true; SIM = false;
@@ -567,10 +568,12 @@ function wireIntro(){
   var play = $("i-play"); if(!play) return;
   play.addEventListener("click", function(e){ e.stopPropagation(); playIntro(); });
   screenEl.addEventListener("pointerdown", function h(e){
+    /* 영상이 도는 중에는 아무것도 하지 않는다 — 음악이 겹쳐 울리지 않게 */
+    if(introState !== "idle"){ screenEl.removeEventListener("pointerdown", h); return; }
     var t = e.target;
     if(t.closest && t.closest("#i-play")) return;
     screenEl.removeEventListener("pointerdown", h);
-    introDone = true;
+    introDone = true; introState = "done";
     if(play.parentNode) play.parentNode.removeChild(play);
     /* 게임을 바로 시작하는 길이면 음악은 그쪽에 맡긴다 */
     if(!(t.closest && t.closest("#k-start, #m-start"))){ snd.start(); snd.music("title"); }
@@ -578,8 +581,12 @@ function wireIntro(){
 }
 
 function playIntro(){
-  snd.start();
+  if(introState !== "idle") return;
   var stage = $("i-stage"); if(!stage) return;
+  introState = "playing";
+  snd.start();
+  var play = $("i-play");                    /* 단추부터 치운다 — 영상을 가리지 않게 */
+  if(play && play.parentNode) play.parentNode.removeChild(play);
   var v = document.createElement("video");
   v.className = "keyart-img intro-video";
   v.setAttribute("playsinline", ""); v.playsInline = true;
@@ -602,6 +609,8 @@ function playIntro(){
     document.body.classList.remove("introplaying");
     if(skip.parentNode) skip.parentNode.removeChild(skip);
     drop();
+    introState = "idle";
+    scrTitle();                       /* ▶ 단추를 되돌려 다시 눌러 볼 수 있게 */
   }
   function finish(){
     /* 영상의 마지막 프레임 위로 진짜 시작 화면을 깔고, 영상만 살짝 지운다.
@@ -614,9 +623,16 @@ function playIntro(){
       "transition:opacity .35s ease";
     document.body.classList.remove("introplaying");
     if(skip.parentNode) skip.parentNode.removeChild(skip);
-    introDone = true;
+    introDone = true; introState = "done";
     scrTitle();
     snd.music("title");
+    /* 건너뛴 경우에도 영상 소리가 뚝 끊기지 않게 같이 줄인다 */
+    var v0 = v.volume, t0 = Date.now();
+    var fade = setInterval(function(){
+      var k = (Date.now() - t0) / 350;
+      try { v.volume = Math.max(0, v0 * (1 - k)); } catch(e){}
+      if(k >= 1) clearInterval(fade);
+    }, 30);
     requestAnimationFrame(function(){ v.style.opacity = "0"; });
     setTimeout(drop, 420);
   }
